@@ -1,0 +1,109 @@
+{
+  "name": "Petri Net Editor",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:24-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installOhMyZsh": true,
+      "configureZshAsDefaultShell": true
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "antfu.iconify",
+        "bradlc.vscode-tailwindcss",
+        "Nuxtr.nuxtr-vscode",
+        "pkief.material-icon-theme",
+        "streetsidesoftware.code-spell-checker",
+        "streetsidesoftware.code-spell-checker-german",
+        "usernamehw.errorlens",
+        "editorconfig.editorconfig",
+        "zhuangtongfa.material-theme",
+        "christian-kohler.path-intellisense",
+        "dbaeumer.vscode-eslint"
+      ],
+      "settings": {
+        // Style
+        "workbench.colorTheme": "One Dark Pro Darker",
+        "terminal.integrated.fontFamily": "JetbrainsMono Nerd Font Mono",
+        "workbench.iconTheme": "material-icon-theme",
+        // General
+        "extensions.autoUpdate": false,
+        "editor.formatOnSave": true,
+        "explorer.confirmDelete": false,
+        "explorer.confirmDragAndDrop": false,
+        "extensions.ignoreRecommendations": true,
+        "files.eol": "\n",
+        "editor.minimap.enabled": false,
+        "editor.stickyScroll.enabled": false,
+        "workbench.tree.enableStickyScroll": false,
+        "git.decorations.enabled": true,
+        "scm.defaultViewMode": "tree",
+
+        // Formatting
+        "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+        "editor.tabSize": 2,
+        "eslint.format.enable": true,
+        "eslint.run": "onSave",
+        "ts.updateImportsOnFileMove.enabled": "always",
+
+        "eslint.workingDirectories": [
+          {
+            "mode": "auto"
+          }
+        ],
+        "prettier.enable": false,
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit",
+          "source.organizeImports": "never"
+        },
+        "eslint.rules.customizations": [
+          { "rule": "style/*", "severity": "off", "fixable": true },
+          { "rule": "format/*", "severity": "off", "fixable": true },
+          { "rule": "*-indent", "severity": "off", "fixable": true },
+          { "rule": "*-spacing", "severity": "off", "fixable": true },
+          { "rule": "*-spaces", "severity": "off", "fixable": true },
+          { "rule": "*-order", "severity": "off", "fixable": true },
+          { "rule": "*-dangle", "severity": "off", "fixable": true },
+          { "rule": "*-newline", "severity": "off", "fixable": true },
+          { "rule": "*quotes", "severity": "off", "fixable": true },
+          { "rule": "*semi", "severity": "off", "fixable": true }
+        ],
+        "eslint.validate": [
+          "javascript",
+          "javascriptreact",
+          "typescript",
+          "typescriptreact",
+          "vue",
+          "html",
+          "markdown",
+          "json",
+          "json5",
+          "jsonc",
+          "yaml",
+          "toml",
+          "xml",
+          "gql",
+          "graphql",
+          "astro",
+          "svelte",
+          "css",
+          "less",
+          "scss",
+          "pcss",
+          "postcss"
+        ]
+      }
+    }
+  },
+  "forwardPorts": [
+    3000
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "Frontend (Nuxt.js)",
+      "onAutoForward": "notify"
+    }
+  }
+}

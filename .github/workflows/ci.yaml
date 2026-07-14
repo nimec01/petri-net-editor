@@ -1,0 +1,51 @@
+name: Continuous Integration
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths-ignore:
+      - '.changeset/**'
+      - '.vscode/**'
+      - '.devcontainer/**'
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CI: true
+
+jobs:
+  lint:
+    name: Build, Lint and Check Types
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+        with:
+          fetch-depth: 2
+
+      - name: Setup PNPM
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: lts/*
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm ci
+
+      - name: Build
+        run: pnpm build
+
+      - name: Check Types
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint

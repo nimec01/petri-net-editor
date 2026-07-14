@@ -1,0 +1,11 @@
+shellEmulator: true
+
+allowBuilds:
+  '@parcel/watcher': false
+  esbuild: false
+
+# minimumReleaseAge: 4320 # 3 days
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  - semver@6.3.1
+blockExoticSubdeps: true
