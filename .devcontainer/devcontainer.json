@@ -5,6 +5,14 @@
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installOhMyZsh": true,
       "configureZshAsDefaultShell": true
+    },
+    "ghcr.io/w3cj/devcontainer-features/firewall:latest": {
+      "hosts": "172.65.90.20,172.65.90.21,172.65.90.22,172.65.90.23,opencode.ai,nuxt.com",
+      "githubIps": true,
+      "githubDomains": true,
+      "npmRegistry": true,
+      "context7Mcp": true,
+      "vscodeMarketplace": true
     }
   },
   "customizations": {
@@ -21,7 +29,8 @@
         "editorconfig.editorconfig",
         "zhuangtongfa.material-theme",
         "christian-kohler.path-intellisense",
-        "dbaeumer.vscode-eslint"
+        "dbaeumer.vscode-eslint",
+        "sst-dev.opencode"
       ],
       "settings": {
         // Style
