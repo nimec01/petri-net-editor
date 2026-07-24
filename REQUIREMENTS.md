@@ -15,15 +15,15 @@
 
 - [X] **Canvas zoom & pan** - Navigate and zoom into large Petri nets
 - [ ] **Grid/snap-to-grid** - Align elements neatly on a grid
-- [ ] **Enabled transition highlighting** - Visually indicate which transitions can fire
+- [X] **Enabled transition highlighting** - Visually indicate which transitions can fire
 - [X] **Labels** - Name places and transitions, display initial markings
 
 ## Simulation
 
-- [ ] **Manual firing** - Click on enabled transitions to fire them
-- [ ] **Auto-firing mode** - Automatic random or sequential transition firing
-- [ ] **Step-by-step execution** - Pause between firings for observation
-- [ ] **Execution trace** - Display history of fired transitions and resulting markings
+- [X] **Manual firing** - Click on enabled transitions to fire them
+- [X] **Auto-firing mode** - Automatic random or sequential transition firing
+- [X] **Step-by-step execution** - Pause between firings for observation
+- [X] **Execution trace** - Display history of fired transitions and resulting markings
 
 ## Analysis
 
