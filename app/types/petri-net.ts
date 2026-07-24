@@ -1,4 +1,4 @@
-export type EditorMode = 'select' | 'place' | 'transition' | 'arc' | 'token' | 'delete';
+export type EditorMode = 'select' | 'place' | 'transition' | 'arc' | 'token' | 'delete' | 'fire';
 
 export type ElementType = 'place' | 'transition' | 'arc';
 
@@ -21,4 +21,12 @@ export interface Command {
   type: 'add' | 'delete' | 'modify';
   elementData: PetriNetElementData;
   previousData?: PetriNetElementData;
+}
+
+export interface FiringHistoryEntry {
+  id: number;
+  transitionId: string;
+  transitionLabel: string;
+  markingBefore: Record<string, number>;
+  markingAfter: Record<string, number>;
 }

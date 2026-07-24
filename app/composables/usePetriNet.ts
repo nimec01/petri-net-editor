@@ -1,6 +1,6 @@
 import type { Core, EventObject, NodeSingular } from 'cytoscape';
-import type { Command, EditorMode, PetriNetElementData, PetriNetState } from '~/types/petri-net';
-import type { IPetriNet } from '~/types/petri-net-core';
+import type { Command, EditorMode, FiringHistoryEntry, PetriNetElementData, PetriNetState } from '~/types/petri-net';
+import type { IPetriNet, Marking } from '~/types/petri-net-core';
 import cytoscape from 'cytoscape';
 import { ref, shallowRef } from 'vue';
 import { CytoscapePetriNet } from '~/types/cytoscape-petri-net';
@@ -84,6 +84,14 @@ const petriNetStylesheet: cytoscape.StylesheetJson = [
       'border-width': 3,
     },
   },
+  {
+    selector: '.enabled-transition',
+    style: {
+      'background-color': '#22c55e',
+      'border-color': '#16a34a',
+      'border-width': 3,
+    },
+  },
 ];
 
 export function usePetriNet() {
@@ -92,11 +100,20 @@ export function usePetriNet() {
   const mode = ref<EditorMode>('select');
   const selectedElement = ref<PetriNetElementData | null>(null);
   const arcSourceId = ref<string | null>(null);
+  const firingHistory = ref<FiringHistoryEntry[]>([]);
+  let firingSequence = 0;
+  let initialMarking: Marking | null = null;
 
-  watch(mode, (newMode) => {
+  watch(mode, (newMode, oldMode) => {
     if (newMode !== 'select') {
       cy.value?.elements().unselect();
       selectedElement.value = null;
+    }
+    if (oldMode === 'fire') {
+      exitFireMode();
+    }
+    if (newMode === 'fire') {
+      enterFireMode();
     }
   });
   const undoStack = ref<Command[]>([]);
@@ -186,6 +203,11 @@ export function usePetriNet() {
       case 'token':
         if (type === 'place') {
           incrementTokens(id);
+        }
+        break;
+      case 'fire':
+        if (type === 'transition') {
+          fireTransition(id);
         }
         break;
     }
@@ -492,6 +514,84 @@ export function usePetriNet() {
     nextId = state.elements.length + 1;
   }
 
+  function enterFireMode() {
+    if (!petriNet.value)
+      return;
+    initialMarking = petriNet.value.getMarking();
+    updateEnabledHighlights();
+  }
+
+  function exitFireMode() {
+    if (petriNet.value && initialMarking) {
+      petriNet.value.setMarking(initialMarking);
+    }
+    initialMarking = null;
+    firingHistory.value = [];
+    firingSequence = 0;
+    clearEnabledHighlights();
+  }
+
+  function updateEnabledHighlights() {
+    if (!cy.value || !petriNet.value)
+      return;
+    cy.value.nodes('[type="transition"]').removeClass('enabled-transition');
+    for (const t of petriNet.value.getEnabledTransitions()) {
+      cy.value.getElementById(t.id).addClass('enabled-transition');
+    }
+  }
+
+  function clearEnabledHighlights() {
+    cy.value?.nodes('[type="transition"]').removeClass('enabled-transition');
+  }
+
+  function fireTransition(transitionId: string) {
+    if (!petriNet.value)
+      return;
+    const markingBefore = petriNet.value.getMarking();
+    const newMarking = petriNet.value.fireTransition(transitionId);
+    if (!newMarking)
+      return;
+
+    const ele = cy.value?.getElementById(transitionId);
+    const label = ele?.data('label') || transitionId;
+
+    firingHistory.value.push({
+      id: ++firingSequence,
+      transitionId,
+      transitionLabel: label,
+      markingBefore,
+      markingAfter: { ...newMarking },
+    });
+
+    updateEnabledHighlights();
+  }
+
+  function revertLastFiring() {
+    if (!petriNet.value || firingHistory.value.length === 0)
+      return;
+    const last = firingHistory.value.at(-1)!;
+    petriNet.value.setMarking(last.markingBefore);
+    firingHistory.value.pop();
+    updateEnabledHighlights();
+  }
+
+  function jumpToState(entryId: number) {
+    if (!petriNet.value)
+      return;
+    const idx = firingHistory.value.findIndex(e => e.id === entryId);
+    if (idx === -1)
+      return;
+    const entry = firingHistory.value.at(idx)!;
+    petriNet.value.setMarking(entry.markingBefore);
+    firingHistory.value = firingHistory.value.slice(0, idx);
+    updateEnabledHighlights();
+  }
+
+  function clearHistory() {
+    firingHistory.value = [];
+    firingSequence = 0;
+  }
+
   function destroy() {
     cy.value?.destroy();
     cy.value = null;
@@ -505,6 +605,7 @@ export function usePetriNet() {
     arcSourceId,
     undoStack,
     redoStack,
+    firingHistory,
     initCy,
     addPlace,
     addTransition,
@@ -521,6 +622,9 @@ export function usePetriNet() {
     exportToJson,
     importFromJson,
     closeProperties,
+    revertLastFiring,
+    jumpToState,
+    clearHistory,
     destroy,
   };
 }

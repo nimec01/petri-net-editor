@@ -12,6 +12,18 @@ const mode = petriNet.mode;
 const selectedElement = petriNet.selectedElement;
 const undoStack = petriNet.undoStack;
 const redoStack = petriNet.redoStack;
+const firingHistory = petriNet.firingHistory;
+
+const placeLabels = computed(() => {
+  const labels: Record<string, string> = {};
+  const pn = petriNet.petriNet.value;
+  if (!pn)
+    return labels;
+  for (const p of pn.getPlaces()) {
+    labels[p.id] = p.label;
+  }
+  return labels;
+});
 
 function handleExport() {
   const state = petriNet.exportToJson();
@@ -126,6 +138,18 @@ onMounted(() => {
             @update-tokens="(id, tokens) => petriNet.setTokens(id, tokens)"
             @delete="(id) => petriNet.deleteElement(id)"
             @close="petriNet.closeProperties()"
+          />
+        </ClientOnly>
+      </div>
+
+      <div v-if="mode === 'fire'" class="absolute top-4 left-4 z-10">
+        <ClientOnly>
+          <EditorFireHistory
+            :history="firingHistory"
+            :place-labels="placeLabels"
+            @clear="petriNet.clearHistory()"
+            @revert="petriNet.revertLastFiring()"
+            @jump="(id) => petriNet.jumpToState(id)"
           />
         </ClientOnly>
       </div>
