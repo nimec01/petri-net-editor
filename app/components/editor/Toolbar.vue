@@ -31,36 +31,39 @@ function setMode(mode: EditorMode) {
 </script>
 
 <template>
-  <div class="join shadow-lg">
-    <div
-      v-for="m in modes"
-      :key="m.id"
-      class="tooltip tooltip-bottom"
-      :data-tip="m.label"
-    >
-      <button
-        class="btn join-item btn-sm"
-        :class="{ 'btn-active btn-primary': activeMode === m.id }"
-        @click="setMode(m.id)"
+  <div class="flex gap-2">
+    <div class="join shadow-lg">
+      <div
+        v-for="m in modes"
+        :key="m.id"
+        class="tooltip tooltip-bottom"
+        :data-tip="m.label"
       >
-        <component :is="m.icon" :style="{ 'font-size': `${m.iconSize ?? 1.2}em` }" />
-      </button>
+        <button
+          class="btn join-item btn-sm"
+          :class="{ 'btn-active btn-primary': activeMode === m.id }"
+          @click="setMode(m.id)"
+        >
+          <component :is="m.icon" :style="{ 'font-size': `${m.iconSize ?? 1.2}em` }" />
+        </button>
+      </div>
     </div>
-    <div class="divider divider-horizontal" />
-    <div class="tooltip tooltip-bottom" data-tip="Zoom In">
-      <button class="btn join-item btn-sm" @click="emit('zoomIn')">
-        <IconZoomIn style="font-size: 1.2em;" />
-      </button>
-    </div>
-    <div class="tooltip tooltip-bottom" data-tip="Zoom Out">
-      <button class="btn join-item btn-sm" @click="emit('zoomOut')">
-        <IconZoomOut style="font-size: 1.2em;" />
-      </button>
-    </div>
-    <div class="tooltip tooltip-bottom" data-tip="Fit to Screen">
-      <button class="btn join-item btn-sm" @click="emit('zoomToFit')">
-        <IconFitScreen style="font-size: 1.2em;" />
-      </button>
+    <div class="join shadow-lg">
+      <div class="tooltip tooltip-bottom" data-tip="Zoom In">
+        <button class="btn join-item btn-sm" @click="emit('zoomIn')">
+          <IconZoomIn style="font-size: 1.2em;" />
+        </button>
+      </div>
+      <div class="tooltip tooltip-bottom" data-tip="Zoom Out">
+        <button class="btn join-item btn-sm" @click="emit('zoomOut')">
+          <IconZoomOut style="font-size: 1.2em;" />
+        </button>
+      </div>
+      <div class="tooltip tooltip-bottom" data-tip="Fit to Screen">
+        <button class="btn join-item btn-sm" @click="emit('zoomToFit')">
+          <IconFitScreen style="font-size: 1.2em;" />
+        </button>
+      </div>
     </div>
   </div>
 </template>
