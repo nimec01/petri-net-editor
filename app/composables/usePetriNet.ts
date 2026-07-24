@@ -592,8 +592,13 @@ export function usePetriNet() {
   }
 
   function clearHistory() {
+    stopAutoFire();
+    if (petriNet.value && initialMarking) {
+      petriNet.value.setMarking(initialMarking);
+    }
     firingHistory.value = [];
     firingSequence = 0;
+    updateEnabledHighlights();
   }
 
   function fireRandomTransition(): boolean {
