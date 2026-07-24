@@ -1,7 +1,9 @@
 import type { Core, EventObject, NodeSingular } from 'cytoscape';
 import type { Command, EditorMode, PetriNetElementData, PetriNetState } from '~/types/petri-net';
+import type { IPetriNet } from '~/types/petri-net-core';
 import cytoscape from 'cytoscape';
 import { ref, shallowRef } from 'vue';
+import { CytoscapePetriNet } from '~/types/cytoscape-petri-net';
 
 let nextId = 1;
 
@@ -86,6 +88,7 @@ const petriNetStylesheet: cytoscape.StylesheetJson = [
 
 export function usePetriNet() {
   const cy = shallowRef<Core | null>(null);
+  const petriNet = shallowRef<IPetriNet | null>(null);
   const mode = ref<EditorMode>('select');
   const selectedElement = ref<PetriNetElementData | null>(null);
   const arcSourceId = ref<string | null>(null);
@@ -149,6 +152,7 @@ export function usePetriNet() {
     });
 
     cy.value = instance;
+    petriNet.value = new CytoscapePetriNet(instance);
     return instance;
   }
 
@@ -495,6 +499,7 @@ export function usePetriNet() {
 
   return {
     cy,
+    petriNet,
     mode,
     selectedElement,
     arcSourceId,
