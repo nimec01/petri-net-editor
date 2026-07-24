@@ -13,6 +13,8 @@ const selectedElement = petriNet.selectedElement;
 const undoStack = petriNet.undoStack;
 const redoStack = petriNet.redoStack;
 const firingHistory = petriNet.firingHistory;
+const autoFiring = petriNet.autoFiring;
+const autoFireSpeed = petriNet.autoFireSpeed;
 
 const placeLabels = computed(() => {
   const labels: Record<string, string> = {};
@@ -147,9 +149,14 @@ onMounted(() => {
           <EditorFireHistory
             :history="firingHistory"
             :place-labels="placeLabels"
+            :auto-firing="autoFiring"
+            :auto-fire-speed="autoFireSpeed"
             @clear="petriNet.clearHistory()"
             @revert="petriNet.revertLastFiring()"
             @jump="(id) => petriNet.jumpToState(id)"
+            @toggle-auto-fire="petriNet.toggleAutoFire()"
+            @auto-fire-n="(n) => petriNet.autoFireN(n)"
+            @update:auto-fire-speed="(s) => petriNet.setAutoFireSpeed(s)"
           />
         </ClientOnly>
       </div>

@@ -103,6 +103,9 @@ export function usePetriNet() {
   const firingHistory = ref<FiringHistoryEntry[]>([]);
   let firingSequence = 0;
   let initialMarking: Marking | null = null;
+  const autoFiring = ref(false);
+  const autoFireSpeed = ref(500);
+  let autoFireTimer: ReturnType<typeof setInterval> | null = null;
 
   watch(mode, (newMode, oldMode) => {
     if (newMode !== 'select') {
@@ -522,6 +525,7 @@ export function usePetriNet() {
   }
 
   function exitFireMode() {
+    stopAutoFire();
     if (petriNet.value && initialMarking) {
       petriNet.value.setMarking(initialMarking);
     }
@@ -592,6 +596,62 @@ export function usePetriNet() {
     firingSequence = 0;
   }
 
+  function fireRandomTransition(): boolean {
+    if (!petriNet.value)
+      return false;
+    const enabled = petriNet.value.getEnabledTransitions();
+    if (enabled.length === 0)
+      return false;
+    const random = enabled[Math.floor(Math.random() * enabled.length)]!;
+    fireTransition(random.id);
+    return true;
+  }
+
+  function startAutoFire() {
+    if (autoFiring.value)
+      return;
+    autoFiring.value = true;
+    autoFireTimer = setInterval(() => {
+      if (!fireRandomTransition()) {
+        stopAutoFire();
+      }
+    }, autoFireSpeed.value);
+  }
+
+  function stopAutoFire() {
+    if (autoFireTimer !== null) {
+      clearInterval(autoFireTimer);
+      autoFireTimer = null;
+    }
+    autoFiring.value = false;
+  }
+
+  function toggleAutoFire() {
+    if (autoFiring.value) {
+      stopAutoFire();
+    } else {
+      startAutoFire();
+    }
+  }
+
+  async function autoFireN(count: number) {
+    for (let i = 0; i < count; i++) {
+      if (!fireRandomTransition())
+        break;
+      if (i < count - 1) {
+        await new Promise(resolve => setTimeout(resolve, autoFireSpeed.value));
+      }
+    }
+  }
+
+  function setAutoFireSpeed(speed: number) {
+    autoFireSpeed.value = speed;
+    if (autoFireTimer !== null) {
+      stopAutoFire();
+      startAutoFire();
+    }
+  }
+
   function destroy() {
     cy.value?.destroy();
     cy.value = null;
@@ -606,6 +666,8 @@ export function usePetriNet() {
     undoStack,
     redoStack,
     firingHistory,
+    autoFiring,
+    autoFireSpeed,
     initCy,
     addPlace,
     addTransition,
@@ -625,6 +687,9 @@ export function usePetriNet() {
     revertLastFiring,
     jumpToState,
     clearHistory,
+    toggleAutoFire,
+    autoFireN,
+    setAutoFireSpeed,
     destroy,
   };
 }

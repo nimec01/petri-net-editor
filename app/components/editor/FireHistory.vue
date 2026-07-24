@@ -1,20 +1,29 @@
 <script setup lang="ts">
 import type { FiringHistoryEntry } from '~/types/petri-net';
 import IconArrowBackUp from '~icons/tabler/arrow-back-up';
+import IconPlayerPause from '~icons/tabler/player-pause';
+import IconPlayerPlay from '~icons/tabler/player-play';
+import IconPlayerSkipForward from '~icons/tabler/player-skip-forward';
 import IconTrash from '~icons/tabler/trash';
 
 const props = defineProps<{
   history: FiringHistoryEntry[];
   placeLabels: Record<string, string>;
+  autoFiring: boolean;
+  autoFireSpeed: number;
 }>();
 
 const emit = defineEmits<{
-  clear: [];
-  revert: [];
-  jump: [entryId: number];
+  'clear': [];
+  'revert': [];
+  'jump': [entryId: number];
+  'toggleAutoFire': [];
+  'autoFireN': [count: number];
+  'update:autoFireSpeed': [speed: number];
 }>();
 
 const scrollContainer = ref<HTMLElement | null>(null);
+const nSteps = ref(1);
 
 function resolveMarking(marking: Record<string, number>): string {
   return Object.entries(marking)
@@ -53,6 +62,60 @@ watch(() => props.history.length, () => {
           <IconTrash style="font-size: 1em;" />
         </button>
       </div>
+    </div>
+
+    <div class="flex items-center gap-2 px-4 py-2 border-b border-base-300">
+      <div class="tooltip tooltip-bottom" :data-tip="autoFiring ? 'Stop Auto-Fire' : 'Auto-Fire'">
+        <button
+          class="btn btn-xs"
+          :class="autoFiring ? 'btn-error' : 'btn-success'"
+          @click="emit('toggleAutoFire')"
+        >
+          <IconPlayerPause v-if="autoFiring" style="font-size: 1em;" />
+          <IconPlayerPlay v-else style="font-size: 1em;" />
+        </button>
+      </div>
+      <div class="tooltip tooltip-bottom" data-tip="Fire One Step">
+        <button
+          class="btn btn-xs btn-ghost"
+          :disabled="autoFiring"
+          @click="emit('autoFireN', 1)"
+        >
+          <IconPlayerSkipForward style="font-size: 1em;" />
+        </button>
+      </div>
+      <div class="join flex-1">
+        <input
+          v-model.number="nSteps"
+          type="number"
+          min="1"
+          max="100"
+          class="input input-xs join-item w-full"
+          :disabled="autoFiring"
+          @keydown.enter="emit('autoFireN', nSteps)"
+        >
+        <button
+          class="btn btn-xs btn-primary join-item"
+          :disabled="autoFiring || nSteps < 1"
+          @click="emit('autoFireN', nSteps)"
+        >
+          Go
+        </button>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 px-4 py-1 border-b border-base-300">
+      <span class="text-xs opacity-60 shrink-0">Speed</span>
+      <input
+        type="range"
+        min="100"
+        max="2000"
+        step="100"
+        :value="autoFireSpeed"
+        class="range range-xs range-primary flex-1"
+        @input="emit('update:autoFireSpeed', Number(($event.target as HTMLInputElement).value))"
+      >
+      <span class="text-xs font-mono w-10 text-right">{{ autoFireSpeed }}ms</span>
     </div>
 
     <div ref="scrollContainer" class="overflow-y-auto flex-1">
