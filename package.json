@@ -24,8 +24,11 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^9.1.0",
+    "@iconify/json": "^2.2.504",
     "eslint": "^10.7.0",
     "typescript": "^6.0.3",
+    "unplugin-icons": "^23.0.1",
+    "unplugin-vue-components": "^32.1.0",
     "vue-tsc": "^3.3.7"
   }
 }

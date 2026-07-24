@@ -1,5 +1,9 @@
 <script setup lang="ts">
 import type { EditorMode, PetriNetState } from '~/types/petri-net';
+import IconUndo from '~icons/tabler/arrow-back-up';
+import IconRedo from '~icons/tabler/arrow-forward-up';
+import IconSave from '~icons/tabler/device-floppy-filled';
+import IconLoad from '~icons/tabler/file-upload';
 
 const petriNet = usePetriNet();
 provide('petriNet', petriNet);
@@ -71,7 +75,7 @@ onMounted(() => {
               :disabled="undoStack.length === 0"
               @click="petriNet.undo()"
             >
-              ⟲
+              <IconUndo />
             </button>
           </div>
           <div class="tooltip tooltip-bottom" data-tip="Redo (Ctrl+Shift+Z)">
@@ -80,7 +84,7 @@ onMounted(() => {
               :disabled="redoStack.length === 0"
               @click="petriNet.redo()"
             >
-              ⟳
+              <IconRedo />
             </button>
           </div>
         </div>
@@ -88,10 +92,10 @@ onMounted(() => {
       <div class="navbar-end">
         <div class="join">
           <button class="btn btn-sm join-item" @click="handleImport">
-            Load
+            Load <IconLoad />
           </button>
           <button class="btn btn-sm btn-primary join-item" @click="handleExport">
-            Save
+            Save <IconSave />
           </button>
         </div>
       </div>
