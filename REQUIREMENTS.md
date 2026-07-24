@@ -2,21 +2,21 @@
 
 ## Core Editing
 
-- [ ] **Create/edit/delete places** - Add circles representing places, edit names, delete when no longer needed
-- [ ] **Create/edit/delete transitions** - Add rectangles representing transitions, edit names, delete
-- [ ] **Create/edit/delete arcs** - Draw directed edges from places to transitions and transitions to places
-- [ ] **Add/remove tokens** - Click on places to toggle tokens or set specific counts
-- [ ] **Drag & drop positioning** - Move elements freely on the canvas
+- [X] **Create/edit/delete places** - Add circles representing places, edit names, delete when no longer needed
+- [X] **Create/edit/delete transitions** - Add rectangles representing transitions, edit names, delete
+- [X] **Create/edit/delete arcs** - Draw directed edges from places to transitions and transitions to places
+- [X] **Add/remove tokens** - Click on places to toggle tokens or set specific counts
+- [X] **Drag & drop positioning** - Move elements freely on the canvas
 - [ ] **Multi-select** - Select multiple elements for batch operations
-- [ ] **Undo/redo** - Revert and restore actions with history
-- [ ] **Save/load** - Persist Petri nets to file (JSON or PNML format)
+- [X] **Undo/redo** - Revert and restore actions with history
+- [X] **Save/load** - Persist Petri nets to file (JSON or PNML format)
 
 ## Visualization
 
-- [ ] **Canvas zoom & pan** - Navigate and zoom into large Petri nets
+- [X] **Canvas zoom & pan** - Navigate and zoom into large Petri nets
 - [ ] **Grid/snap-to-grid** - Align elements neatly on a grid
 - [ ] **Enabled transition highlighting** - Visually indicate which transitions can fire
-- [ ] **Labels** - Name places and transitions, display initial markings
+- [X] **Labels** - Name places and transitions, display initial markings
 
 ## Simulation
 
