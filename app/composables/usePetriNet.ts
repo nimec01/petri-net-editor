@@ -1,9 +1,12 @@
 import type { Core, EventObject, NodeSingular } from 'cytoscape';
-import type { Command, EditorMode, FiringHistoryEntry, PetriNetElementData, PetriNetState } from '~/types/petri-net';
+import type { Command, EditorMode, FiringHistoryEntry, LayoutType, PetriNetElementData, PetriNetState } from '~/types/petri-net';
 import type { IPetriNet, Marking } from '~/types/petri-net-core';
 import cytoscape from 'cytoscape';
+import dagre from 'cytoscape-dagre';
 import { computed, ref, shallowRef } from 'vue';
 import { CytoscapePetriNet } from '~/types/cytoscape-petri-net';
+
+cytoscape.use(dagre);
 
 let nextId = 1;
 
@@ -118,6 +121,7 @@ export function usePetriNet() {
   const autoFireSpeed = ref(500);
   let autoFireTimer: ReturnType<typeof setInterval> | null = null;
   const elementCount = ref(0);
+  const layoutType = ref<LayoutType>('dagre');
 
   watch(mode, (newMode, oldMode) => {
     if (newMode !== 'select') {
@@ -553,6 +557,39 @@ export function usePetriNet() {
     cy.value?.fit(undefined, 50);
   }
 
+  function applyLayout(type: LayoutType) {
+    layoutType.value = type;
+    const instance = cy.value;
+    if (!instance || instance.nodes().length === 0)
+      return;
+
+    const roots = instance.nodes().filter(node => node.isParent() || node.parent().length === 0);
+
+    let layoutOptions: cytoscape.LayoutOptions;
+    switch (type) {
+      case 'circle':
+        layoutOptions = { name: 'circle', roots, animate: true, animationDuration: 300 } as cytoscape.LayoutOptions;
+        break;
+      case 'dagre':
+        layoutOptions = {
+          name: 'dagre',
+          rankDir: 'LR',
+          nodeSep: 30,
+          rankSep: 50,
+          edgeSep: 10,
+          animate: true,
+          animationDuration: 300,
+        } as cytoscape.LayoutOptions;
+        break;
+      case 'grid':
+        layoutOptions = { name: 'grid', roots, animate: true, animationDuration: 300 } as cytoscape.LayoutOptions;
+        break;
+    }
+
+    instance.layout(layoutOptions).run();
+    instance.fit(undefined, 50);
+  }
+
   function exportToJson(): PetriNetState {
     if (!cy.value)
       return { elements: [] };
@@ -827,6 +864,8 @@ export function usePetriNet() {
     zoomIn,
     zoomOut,
     zoomToFit,
+    applyLayout,
+    layoutType,
     exportToJson,
     importFromJson,
     closeProperties,

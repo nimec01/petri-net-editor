@@ -17,6 +17,7 @@ const firingHistory = petriNet.firingHistory;
 const autoFiring = petriNet.autoFiring;
 const autoFireSpeed = petriNet.autoFireSpeed;
 const isNetEmpty = petriNet.isNetEmpty;
+const layoutType = petriNet.layoutType;
 
 const placeLabels = computed(() => {
   const labels: Record<string, string> = {};
@@ -153,10 +154,12 @@ onBeforeUnmount(() => {
         <ClientOnly>
           <EditorToolbar
             :active-mode="mode"
+            :current-layout="layoutType"
             @update:active-mode="setMode"
             @zoom-in="petriNet.zoomIn()"
             @zoom-out="petriNet.zoomOut()"
             @zoom-to-fit="petriNet.zoomToFit()"
+            @apply-layout="(type) => petriNet.applyLayout(type)"
           />
         </ClientOnly>
       </div>

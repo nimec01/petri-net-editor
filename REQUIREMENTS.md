@@ -14,7 +14,7 @@
 ## Visualization
 
 - [X] **Canvas zoom & pan** - Navigate and zoom into large Petri nets
-- [ ] **Grid/snap-to-grid** - Align elements neatly on a grid
+- [X] **Layout** - Automatically align elements to a given layout
 - [X] **Enabled transition highlighting** - Visually indicate which transitions can fire
 - [X] **Labels** - Name places and transitions, display initial markings
 

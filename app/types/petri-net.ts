@@ -1,5 +1,7 @@
 export type EditorMode = 'select' | 'place' | 'transition' | 'arc' | 'token' | 'delete' | 'fire';
 
+export type LayoutType = 'circle' | 'dagre' | 'grid';
+
 export type ElementType = 'place' | 'transition' | 'arc';
 
 export interface PetriNetElementData {

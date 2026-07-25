@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import type { Component } from 'vue';
-import type { EditorMode } from '~/types/petri-net';
+import type { EditorMode, LayoutType } from '~/types/petri-net';
 import IconFitScreen from '~icons/tabler/arrows-diagonal';
 import IconFire from '~icons/tabler/bolt';
+import IconLayout from '~icons/tabler/layout-grid';
 import IconZoomIn from '~icons/tabler/zoom-in';
 import IconZoomOut from '~icons/tabler/zoom-out';
 
 defineProps<{
   activeMode: EditorMode;
+  currentLayout: LayoutType;
 }>();
 
 const emit = defineEmits<{
@@ -15,6 +17,7 @@ const emit = defineEmits<{
   'zoomIn': [];
   'zoomOut': [];
   'zoomToFit': [];
+  'applyLayout': [type: LayoutType];
 }>();
 
 const editModes: { id: EditorMode; icon: Component; iconSize?: number; label: string }[] = [
@@ -24,6 +27,12 @@ const editModes: { id: EditorMode; icon: Component; iconSize?: number; label: st
   { id: 'arc', icon: defineAsyncComponent(() => import('~icons/tabler/vector-spline')), label: 'Arc' },
   { id: 'token', icon: defineAsyncComponent(() => import('~icons/tabler/point-filled')), label: 'Token' },
   { id: 'delete', icon: defineAsyncComponent(() => import('~icons/tabler/eraser')), label: 'Delete' },
+];
+
+const layoutOptions: { id: LayoutType; label: string }[] = [
+  { id: 'dagre', label: 'Dagre (Directed)' },
+  { id: 'circle', label: 'Circle' },
+  { id: 'grid', label: 'Grid' },
 ];
 
 function toggleFireMode(currentMode: EditorMode) {
@@ -76,6 +85,23 @@ function toggleFireMode(currentMode: EditorMode) {
           <IconFitScreen style="font-size: 1.2em;" />
         </button>
       </div>
+    </div>
+    <div class="dropdown dropdown-bottom">
+      <div class="tooltip tooltip-bottom" data-tip="Auto Layout">
+        <button class="btn btn-sm shadow-lg" style="font-size: 1.2em;">
+          <IconLayout />
+        </button>
+      </div>
+      <ul class="dropdown-content menu p-2 shadow-lg bg-base-200 rounded-box w-52 z-50">
+        <li v-for="opt in layoutOptions" :key="opt.id">
+          <button
+            :class="{ active: currentLayout === opt.id }"
+            @click="emit('applyLayout', opt.id)"
+          >
+            {{ opt.label }}
+          </button>
+        </li>
+      </ul>
     </div>
   </div>
 </template>
