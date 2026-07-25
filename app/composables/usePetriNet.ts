@@ -2,7 +2,7 @@ import type { Core, EventObject, NodeSingular } from 'cytoscape';
 import type { Command, EditorMode, FiringHistoryEntry, PetriNetElementData, PetriNetState } from '~/types/petri-net';
 import type { IPetriNet, Marking } from '~/types/petri-net-core';
 import cytoscape from 'cytoscape';
-import { ref, shallowRef } from 'vue';
+import { computed, ref, shallowRef } from 'vue';
 import { CytoscapePetriNet } from '~/types/cytoscape-petri-net';
 
 let nextId = 1;
@@ -117,6 +117,7 @@ export function usePetriNet() {
   const autoFiring = ref(false);
   const autoFireSpeed = ref(500);
   let autoFireTimer: ReturnType<typeof setInterval> | null = null;
+  const elementCount = ref(0);
 
   watch(mode, (newMode, oldMode) => {
     if (newMode !== 'select') {
@@ -295,6 +296,7 @@ export function usePetriNet() {
       position: { x, y },
     });
     pushUndo({ type: 'add', elementData: { id, type: 'place', label, tokens: 0 } });
+    elementCount.value++;
     return innerId;
   }
 
@@ -308,6 +310,7 @@ export function usePetriNet() {
       position: { x, y },
     });
     pushUndo({ type: 'add', elementData: { id, type: 'transition', label } });
+    elementCount.value++;
     return id;
   }
 
@@ -321,6 +324,7 @@ export function usePetriNet() {
       type: 'add',
       elementData: { id, type: 'arc', label: '', source: sourceId, target: targetId },
     });
+    elementCount.value++;
     return id;
   }
 
@@ -346,6 +350,7 @@ export function usePetriNet() {
     }
 
     deleteTarget.remove();
+    elementCount.value = cy.value?.elements().length ?? 0;
     pushUndo({ type: 'delete', elementData });
   }
 
@@ -636,6 +641,7 @@ export function usePetriNet() {
     redoStack.value = [];
     selectedElement.value = null;
     nextId = state.elements.length + 1;
+    elementCount.value = cy.value.elements().length;
   }
 
   function enterFireMode() {
@@ -778,6 +784,20 @@ export function usePetriNet() {
     }
   }
 
+  const isNetEmpty = computed(() => elementCount.value === 0);
+
+  function clearNet() {
+    if (!cy.value)
+      return;
+    cy.value.elements().remove();
+    placeCount = 0;
+    transitionCount = 0;
+    undoStack.value = [];
+    redoStack.value = [];
+    selectedElement.value = null;
+    elementCount.value = 0;
+  }
+
   function destroy() {
     cy.value?.destroy();
     cy.value = null;
@@ -816,6 +836,8 @@ export function usePetriNet() {
     toggleAutoFire,
     autoFireN,
     setAutoFireSpeed,
+    isNetEmpty,
+    clearNet,
     destroy,
   };
 }

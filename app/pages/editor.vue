@@ -4,6 +4,7 @@ import IconUndo from '~icons/tabler/arrow-back-up';
 import IconRedo from '~icons/tabler/arrow-forward-up';
 import IconSave from '~icons/tabler/device-floppy-filled';
 import IconLoad from '~icons/tabler/file-upload';
+import IconTrash from '~icons/tabler/trash';
 
 const petriNet = usePetriNet();
 provide('petriNet', petriNet);
@@ -15,6 +16,7 @@ const redoStack = petriNet.redoStack;
 const firingHistory = petriNet.firingHistory;
 const autoFiring = petriNet.autoFiring;
 const autoFireSpeed = petriNet.autoFireSpeed;
+const isNetEmpty = petriNet.isNetEmpty;
 
 const placeLabels = computed(() => {
   const labels: Record<string, string> = {};
@@ -57,6 +59,19 @@ function handleImport() {
   input.click();
 }
 
+function handleClearNet() {
+  // eslint-disable-next-line no-alert
+  if (!confirm('Are you sure you want to clear the entire Petri net?'))
+    return;
+  petriNet.clearNet();
+}
+
+function handleBeforeUnload(e: BeforeUnloadEvent) {
+  if (!isNetEmpty.value) {
+    e.preventDefault();
+  }
+}
+
 onMounted(() => {
   window.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
@@ -72,6 +87,11 @@ onMounted(() => {
       petriNet.redo();
     }
   });
+  window.addEventListener('beforeunload', handleBeforeUnload);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
 
@@ -105,6 +125,15 @@ onMounted(() => {
       </div>
       <div class="navbar-end">
         <div class="join">
+          <div class="tooltip tooltip-bottom" data-tip="Clear net">
+            <button
+              class="btn btn-sm btn-error join-item"
+              :disabled="isNetEmpty"
+              @click="handleClearNet"
+            >
+              <IconTrash />
+            </button>
+          </div>
           <button class="btn btn-sm join-item" @click="handleImport">
             Load <IconLoad />
           </button>
