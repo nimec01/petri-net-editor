@@ -13,19 +13,30 @@ function generateId(): string {
 
 const petriNetStylesheet: cytoscape.StylesheetJson = [
   {
-    selector: 'node[type="place"]',
+    selector: 'node.place-wrapper',
+    style: {
+      'label': 'data(label)',
+      'text-valign': 'bottom',
+      'text-halign': 'center',
+      'text-margin-y': -5,
+      'font-size': '12px',
+      'shape': 'rectangle',
+      'background-opacity': 0,
+      'border-width': 0,
+      'width': 60,
+      'height': 60,
+    },
+  },
+  {
+    selector: 'node.place-wrapper > node',
     style: {
       'shape': 'ellipse',
       'background-color': '#ffffff',
       'border-color': '#374151',
       'border-width': 2,
-      'label': 'data(label)',
-      'text-valign': 'bottom',
-      'text-halign': 'center',
-      'text-margin-y': 10,
+      'label': '',
       'width': 60,
       'height': 60,
-      'font-size': '12px',
     },
   },
   {
@@ -45,7 +56,7 @@ const petriNetStylesheet: cytoscape.StylesheetJson = [
     },
   },
   {
-    selector: 'node[type="place"][tokens > 0]',
+    selector: 'node.place-wrapper > node[tokens > 0]',
     style: {
       'label': (ele: NodeSingular) => {
         const tokens = ele.data('tokens') as number;
@@ -145,11 +156,15 @@ export function usePetriNet() {
         return;
       }
       const ele = e.target;
+      const isWrapper = ele.data('type') === 'place';
+      const parent = ele.parent().first();
+      const wrapperId = isWrapper ? ele.id() : (parent.length > 0 && parent.data('type') === 'place' ? parent.id() : ele.id());
+      const innerNode = isWrapper ? ele.children().first() : ele;
       selectedElement.value = {
-        id: ele.id(),
-        type: ele.data('type'),
-        label: ele.data('label') || '',
-        tokens: ele.data('tokens'),
+        id: wrapperId,
+        type: 'place',
+        label: ele.data('label') || (isWrapper ? '' : ''),
+        tokens: innerNode.data('tokens'),
         source: ele.data('source'),
         target: ele.data('target'),
       };
@@ -193,24 +208,33 @@ export function usePetriNet() {
 
   function handleElementTap(e: EventObject) {
     const ele = e.target;
-    const id = ele.id();
     const type = ele.data('type') as string;
+
+    let targetId = ele.id();
+    let targetType = type;
+
+    if (type === 'place') {
+      targetId = `${ele.id()}-inner`;
+    } else if (!type && ele.parent().length > 0 && ele.parent().data('type') === 'place') {
+      targetId = ele.id();
+      targetType = 'place';
+    }
 
     switch (mode.value) {
       case 'delete':
-        deleteElement(id);
+        deleteElement(targetId);
         break;
       case 'arc':
-        handleArcTap(id, type);
+        handleArcTap(targetId, targetType);
         break;
       case 'token':
-        if (type === 'place') {
-          incrementTokens(id);
+        if (targetType === 'place') {
+          incrementTokens(targetId);
         }
         break;
       case 'fire':
-        if (type === 'transition') {
-          fireTransition(id);
+        if (targetType === 'transition') {
+          fireTransition(targetId);
         }
         break;
     }
@@ -258,13 +282,20 @@ export function usePetriNet() {
     const id = generateId();
     placeCount++;
     const label = `P${placeCount}`;
+    const innerId = `${id}-inner`;
     cy.value?.add({
       group: 'nodes',
-      data: { id, type: 'place', label, tokens: 0 },
+      data: { id, type: 'place', label },
+      position: { x, y },
+      classes: 'place-wrapper',
+    });
+    cy.value?.add({
+      group: 'nodes',
+      data: { id: innerId, parent: id, tokens: 0 },
       position: { x, y },
     });
     pushUndo({ type: 'add', elementData: { id, type: 'place', label, tokens: 0 } });
-    return id;
+    return innerId;
   }
 
   function addTransition(x: number, y: number): string {
@@ -298,20 +329,23 @@ export function usePetriNet() {
     if (!ele || ele.length === 0)
       return;
 
+    const parent = ele.parent().first();
+    const deleteTarget = parent.length > 0 ? parent : ele;
+
     const elementData: PetriNetElementData = {
-      id: ele.id(),
-      type: ele.data('type'),
-      label: ele.data('label') || '',
-      tokens: ele.data('tokens'),
-      source: ele.data('source'),
-      target: ele.data('target'),
+      id: deleteTarget.id(),
+      type: deleteTarget.data('type') || 'place',
+      label: deleteTarget.data('label') || '',
+      tokens: deleteTarget.data('tokens'),
+      source: deleteTarget.data('source'),
+      target: deleteTarget.data('target'),
     };
 
-    if (selectedElement.value?.id === id) {
+    if (selectedElement.value?.id === id || selectedElement.value?.id === deleteTarget.id()) {
       selectedElement.value = null;
     }
 
-    ele.remove();
+    deleteTarget.remove();
     pushUndo({ type: 'delete', elementData });
   }
 
@@ -383,6 +417,18 @@ export function usePetriNet() {
           group: 'edges',
           data: { id: data.id, type: 'arc', source: data.source, target: data.target },
         });
+      } else if (data.type === 'place') {
+        cy.value.add({
+          group: 'nodes',
+          data: { id: data.id, type: 'place', label: data.label },
+          position: { x: data.x ?? 0, y: data.y ?? 0 },
+          classes: 'place-wrapper',
+        });
+        cy.value.add({
+          group: 'nodes',
+          data: { id: `${data.id}-inner`, parent: data.id, tokens: data.tokens ?? 0 },
+          position: { x: data.x ?? 0, y: data.y ?? 0 },
+        });
       } else {
         cy.value.add({
           group: 'nodes',
@@ -390,20 +436,30 @@ export function usePetriNet() {
         });
       }
     } else if (cmd.type === 'modify' && cmd.previousData) {
-      const ele = cy.value.getElementById(cmd.previousData.id);
+      const prev = cmd.previousData;
+      const ele = cy.value.getElementById(prev.id);
       if (ele.length > 0) {
-        ele.data('label', cmd.previousData.label);
-        if (cmd.previousData.tokens !== undefined) {
-          ele.data('tokens', cmd.previousData.tokens);
+        if (prev.type === 'place') {
+          if (prev.label !== undefined) {
+            ele.data('label', prev.label);
+          }
+          if (prev.tokens !== undefined) {
+            const inner = cy.value.getElementById(`${prev.id}-inner`);
+            if (inner.length > 0) {
+              inner.data('tokens', prev.tokens);
+            }
+          }
+        } else {
+          ele.data('label', prev.label);
+          if (prev.tokens !== undefined) {
+            ele.data('tokens', prev.tokens);
+          }
         }
-        if (selectedElement.value?.id === cmd.previousData.id) {
+        if (selectedElement.value?.id === prev.id) {
           selectedElement.value = {
-            id: cmd.previousData.id,
-            type: cmd.previousData.type,
-            label: cmd.previousData.label,
-            tokens: cmd.previousData.tokens,
-            source: cmd.previousData.source,
-            target: cmd.previousData.target,
+            ...selectedElement.value,
+            label: prev.label ?? selectedElement.value.label,
+            tokens: prev.tokens ?? selectedElement.value.tokens,
           };
         }
       }
@@ -424,6 +480,18 @@ export function usePetriNet() {
           group: 'edges',
           data: { id: data.id, type: 'arc', source: data.source, target: data.target },
         });
+      } else if (data.type === 'place') {
+        cy.value.add({
+          group: 'nodes',
+          data: { id: data.id, type: 'place', label: data.label },
+          position: { x: data.x ?? 0, y: data.y ?? 0 },
+          classes: 'place-wrapper',
+        });
+        cy.value.add({
+          group: 'nodes',
+          data: { id: `${data.id}-inner`, parent: data.id, tokens: data.tokens ?? 0 },
+          position: { x: data.x ?? 0, y: data.y ?? 0 },
+        });
       } else {
         cy.value.add({
           group: 'nodes',
@@ -436,20 +504,30 @@ export function usePetriNet() {
         selectedElement.value = null;
       }
     } else if (cmd.type === 'modify') {
-      const ele = cy.value.getElementById(cmd.elementData.id);
+      const data = cmd.elementData;
+      const ele = cy.value.getElementById(data.id);
       if (ele.length > 0) {
-        ele.data('label', cmd.elementData.label);
-        if (cmd.elementData.tokens !== undefined) {
-          ele.data('tokens', cmd.elementData.tokens);
+        if (data.type === 'place') {
+          if (data.label !== undefined) {
+            ele.data('label', data.label);
+          }
+          if (data.tokens !== undefined) {
+            const inner = cy.value.getElementById(`${data.id}-inner`);
+            if (inner.length > 0) {
+              inner.data('tokens', data.tokens);
+            }
+          }
+        } else {
+          ele.data('label', data.label);
+          if (data.tokens !== undefined) {
+            ele.data('tokens', data.tokens);
+          }
         }
-        if (selectedElement.value?.id === cmd.elementData.id) {
+        if (selectedElement.value?.id === data.id) {
           selectedElement.value = {
-            id: cmd.elementData.id,
-            type: cmd.elementData.type,
-            label: cmd.elementData.label,
-            tokens: cmd.elementData.tokens,
-            source: cmd.elementData.source,
-            target: cmd.elementData.target,
+            ...selectedElement.value,
+            label: data.label ?? selectedElement.value.label,
+            tokens: data.tokens ?? selectedElement.value.tokens,
           };
         }
       }
@@ -473,16 +551,33 @@ export function usePetriNet() {
   function exportToJson(): PetriNetState {
     if (!cy.value)
       return { elements: [] };
-    const elements: PetriNetElementData[] = cy.value.elements().map(ele => ({
-      id: ele.id(),
-      type: ele.data('type'),
-      label: ele.data('label') || '',
-      tokens: ele.data('tokens'),
-      source: ele.data('source'),
-      target: ele.data('target'),
-      x: ele.isNode() ? ele.position('x') : undefined,
-      y: ele.isNode() ? ele.position('y') : undefined,
-    }));
+
+    const innerToWrapper = new Map<string, string>();
+    cy.value.nodes('[type="place"] > node').forEach((inner) => {
+      const parent = inner.parent().first();
+      if (parent.length > 0) {
+        innerToWrapper.set(inner.id(), parent.id());
+      }
+    });
+
+    const elements: PetriNetElementData[] = [];
+    cy.value.elements().forEach((ele) => {
+      if (ele.isNode() && ele.parent().length > 0) {
+        return;
+      }
+      const source = ele.data('source');
+      const target = ele.data('target');
+      elements.push({
+        id: ele.id(),
+        type: ele.data('type'),
+        label: ele.data('label') || '',
+        tokens: ele.data('tokens'),
+        source: source ? (innerToWrapper.get(source) ?? source) : undefined,
+        target: target ? (innerToWrapper.get(target) ?? target) : undefined,
+        x: ele.isNode() ? ele.position('x') : undefined,
+        y: ele.isNode() ? ele.position('y') : undefined,
+      });
+    });
     return { elements };
   }
 
@@ -492,24 +587,50 @@ export function usePetriNet() {
     cy.value.elements().remove();
     placeCount = 0;
     transitionCount = 0;
+
+    const wrapperToInner = new Map<string, string>();
+
     for (const el of state.elements) {
       if (el.type === 'arc') {
-        cy.value.add({
-          group: 'edges',
-          data: { id: el.id, type: 'arc', source: el.source, target: el.target },
-        });
-      } else {
-        if (el.type === 'place')
-          placeCount++;
-        if (el.type === 'transition')
-          transitionCount++;
+        continue;
+      }
+      if (el.type === 'place') {
+        placeCount++;
+        const innerId = `${el.id}-inner`;
+        wrapperToInner.set(el.id, innerId);
         cy.value.add({
           group: 'nodes',
-          data: { id: el.id, type: el.type, label: el.label, tokens: el.tokens },
+          data: { id: el.id, type: 'place', label: el.label },
+          position: { x: el.x ?? 0, y: el.y ?? 0 },
+          classes: 'place-wrapper',
+        });
+        cy.value.add({
+          group: 'nodes',
+          data: { id: innerId, parent: el.id, tokens: el.tokens ?? 0 },
+          position: { x: el.x ?? 0, y: el.y ?? 0 },
+        });
+      }
+      if (el.type === 'transition') {
+        transitionCount++;
+        cy.value.add({
+          group: 'nodes',
+          data: { id: el.id, type: 'transition', label: el.label },
           position: { x: el.x ?? 0, y: el.y ?? 0 },
         });
       }
     }
+
+    for (const el of state.elements) {
+      if (el.type === 'arc') {
+        const source = wrapperToInner.get(el.source!) ?? el.source!;
+        const target = wrapperToInner.get(el.target!) ?? el.target!;
+        cy.value.add({
+          group: 'edges',
+          data: { id: el.id, type: 'arc', source, target },
+        });
+      }
+    }
+
     cy.value.fit(undefined, 50);
     undoStack.value = [];
     redoStack.value = [];

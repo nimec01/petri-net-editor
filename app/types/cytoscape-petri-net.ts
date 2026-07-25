@@ -1,4 +1,4 @@
-import type { Core } from 'cytoscape';
+import type { Core, NodeSingular } from 'cytoscape';
 import type { Arc, IPetriNet, Marking, Place, Transition } from '~/types/petri-net-core';
 
 export class CytoscapePetriNet implements IPetriNet {
@@ -6,6 +6,17 @@ export class CytoscapePetriNet implements IPetriNet {
 
   constructor(cy: Core) {
     this.cy = cy;
+  }
+
+  private getInnerNode(nodeId: string): NodeSingular {
+    const node = this.cy.getElementById(nodeId);
+    if (node.length > 0 && node.data('type') === 'place') {
+      const inner = node.children().first();
+      if (inner.length > 0) {
+        return inner;
+      }
+    }
+    return node;
   }
 
   getPlaces(): Place[] {
@@ -35,7 +46,8 @@ export class CytoscapePetriNet implements IPetriNet {
   getMarking(): Marking {
     const marking: Marking = {};
     this.cy.nodes('[type="place"]').forEach((node) => {
-      marking[node.id()] = node.data('tokens') || 0;
+      const inner = node.children().first();
+      marking[node.id()] = inner.length > 0 ? (inner.data('tokens') || 0) : 0;
     });
     return marking;
   }
@@ -47,26 +59,26 @@ export class CytoscapePetriNet implements IPetriNet {
   }
 
   getTokens(placeId: string): number {
-    const node = this.cy.getElementById(placeId);
-    if (node.length === 0 || node.data('type') !== 'place') {
+    const inner = this.getInnerNode(placeId);
+    if (inner.length === 0) {
       return 0;
     }
-    return node.data('tokens') || 0;
+    return inner.data('tokens') || 0;
   }
 
   setTokens(placeId: string, count: number): void {
-    const node = this.cy.getElementById(placeId);
-    if (node.length === 0 || node.data('type') !== 'place') {
+    const inner = this.getInnerNode(placeId);
+    if (inner.length === 0) {
       return;
     }
-    node.data('tokens', Math.max(0, count));
+    inner.data('tokens', Math.max(0, count));
   }
 
   getInputPlaces(transitionId: string): Place[] {
     return this.cy.edges(`[type="arc"][target="${transitionId}"]`)
       .map((edge) => {
         const sourceNode = this.cy.getElementById(edge.data('source'));
-        if (sourceNode.length === 0 || sourceNode.data('type') !== 'place') {
+        if (sourceNode.length === 0 || sourceNode.data('type') === 'transition') {
           return null;
         }
         return {
@@ -82,7 +94,7 @@ export class CytoscapePetriNet implements IPetriNet {
     return this.cy.edges(`[type="arc"][source="${transitionId}"]`)
       .map((edge) => {
         const targetNode = this.cy.getElementById(edge.data('target'));
-        if (targetNode.length === 0 || targetNode.data('type') !== 'place') {
+        if (targetNode.length === 0 || targetNode.data('type') === 'transition') {
           return null;
         }
         return {
@@ -128,10 +140,17 @@ export class CytoscapePetriNet implements IPetriNet {
   addPlace(x: number, y: number, label?: string): Place {
     const id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const placeLabel = label || `P${this.getPlaces().length + 1}`;
+    const innerId = `${id}-inner`;
 
     this.cy.add({
       group: 'nodes',
-      data: { id, type: 'place', label: placeLabel, tokens: 0 },
+      data: { id, type: 'place', label: placeLabel },
+      position: { x, y },
+      classes: 'place-wrapper',
+    });
+    this.cy.add({
+      group: 'nodes',
+      data: { id: innerId, parent: id, tokens: 0 },
       position: { x, y },
     });
 
@@ -163,6 +182,11 @@ export class CytoscapePetriNet implements IPetriNet {
   }
 
   removeElement(id: string): void {
-    this.cy.getElementById(id).remove();
+    const ele = this.cy.getElementById(id);
+    if (ele.length > 0 && ele.data('type') === 'place' && ele.parent().length > 0) {
+      ele.parent().remove();
+    } else {
+      ele.remove();
+    }
   }
 }
