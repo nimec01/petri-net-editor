@@ -299,7 +299,7 @@ export function usePetriNet() {
       data: { id: innerId, parent: id, tokens: 0 },
       position: { x, y },
     });
-    pushUndo({ type: 'add', elementData: { id, type: 'place', label, tokens: 0 } });
+    pushUndo({ type: 'add', elementData: { id, type: 'place', label, tokens: 0, x, y } });
     elementCount.value++;
     return innerId;
   }
@@ -313,7 +313,7 @@ export function usePetriNet() {
       data: { id, type: 'transition', label },
       position: { x, y },
     });
-    pushUndo({ type: 'add', elementData: { id, type: 'transition', label } });
+    pushUndo({ type: 'add', elementData: { id, type: 'transition', label, x, y } });
     elementCount.value++;
     return id;
   }
@@ -340,6 +340,7 @@ export function usePetriNet() {
     const parent = ele.parent().first();
     const deleteTarget = parent.length > 0 ? parent : ele;
 
+    const pos = deleteTarget.position();
     const elementData: PetriNetElementData = {
       id: deleteTarget.id(),
       type: deleteTarget.data('type') || 'place',
@@ -347,6 +348,8 @@ export function usePetriNet() {
       tokens: deleteTarget.data('tokens'),
       source: deleteTarget.data('source'),
       target: deleteTarget.data('target'),
+      x: pos.x,
+      y: pos.y,
     };
 
     if (selectedElement.value?.id === id || selectedElement.value?.id === deleteTarget.id()) {
@@ -359,21 +362,36 @@ export function usePetriNet() {
   }
 
   function setTokens(id: string, count: number) {
-    const ele = cy.value?.getElementById(id);
-    if (!ele || ele.length === 0)
+    let tokenEle = cy.value?.getElementById(id);
+    if (!tokenEle || tokenEle.length === 0)
       return;
 
-    const previousTokens = ele.data('tokens') as number;
-    ele.data('tokens', Math.max(0, count));
+    let wrapperId = id;
+    if (tokenEle.data('type') === 'place') {
+      const innerId = `${id}-inner`;
+      const innerEle = cy.value?.getElementById(innerId);
+      if (innerEle && innerEle.length > 0) {
+        tokenEle = innerEle;
+        wrapperId = id;
+      }
+    } else if (tokenEle.parent().length > 0 && tokenEle.parent().data('type') === 'place') {
+      wrapperId = tokenEle.parent().first().id();
+    }
 
-    if (selectedElement.value?.id === id) {
+    const previousTokens = tokenEle.data('tokens') as number;
+    tokenEle.data('tokens', Math.max(0, count));
+
+    const wrapperEle = cy.value?.getElementById(wrapperId);
+    const label = wrapperEle?.data('label') ?? '';
+
+    if (selectedElement.value?.id === wrapperId || selectedElement.value?.id === id) {
       selectedElement.value = { ...selectedElement.value, tokens: Math.max(0, count) };
     }
 
     pushUndo({
       type: 'modify',
-      elementData: { id, type: 'place', label: ele.data('label'), tokens: Math.max(0, count) },
-      previousData: { id, type: 'place', label: ele.data('label'), tokens: previousTokens },
+      elementData: { id: wrapperId, type: 'place', label, tokens: Math.max(0, count) },
+      previousData: { id: wrapperId, type: 'place', label, tokens: previousTokens },
     });
   }
 
@@ -442,6 +460,7 @@ export function usePetriNet() {
         cy.value.add({
           group: 'nodes',
           data: { id: data.id, type: data.type, label: data.label, tokens: data.tokens },
+          position: { x: data.x ?? 0, y: data.y ?? 0 },
         });
       }
     } else if (cmd.type === 'modify' && cmd.previousData) {
@@ -505,6 +524,7 @@ export function usePetriNet() {
         cy.value.add({
           group: 'nodes',
           data: { id: data.id, type: data.type, label: data.label, tokens: data.tokens },
+          position: { x: data.x ?? 0, y: data.y ?? 0 },
         });
       }
     } else if (cmd.type === 'delete') {
