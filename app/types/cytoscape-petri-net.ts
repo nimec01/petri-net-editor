@@ -40,6 +40,7 @@ export class CytoscapePetriNet implements IPetriNet {
       id: edge.id(),
       source: edge.data('source'),
       target: edge.data('target'),
+      weight: edge.data('weight') || 1,
     }));
   }
 
@@ -107,11 +108,15 @@ export class CytoscapePetriNet implements IPetriNet {
   }
 
   isTransitionEnabled(transitionId: string): boolean {
-    const inputPlaces = this.getInputPlaces(transitionId);
-    if (inputPlaces.length === 0) {
+    const inputArcs = this.cy.edges(`[type="arc"][target="${transitionId}"]`);
+    if (inputArcs.length === 0) {
       return false;
     }
-    return inputPlaces.every(place => this.getTokens(place.id) > 0);
+    return inputArcs.every((edge) => {
+      const sourceId = edge.data('source');
+      const weight = edge.data('weight') || 1;
+      return this.getTokens(sourceId) >= weight;
+    });
   }
 
   getEnabledTransitions(): Transition[] {
@@ -123,15 +128,19 @@ export class CytoscapePetriNet implements IPetriNet {
       return null;
     }
 
-    const inputPlaces = this.getInputPlaces(transitionId);
-    const outputPlaces = this.getOutputPlaces(transitionId);
+    const inputArcs = this.cy.edges(`[type="arc"][target="${transitionId}"]`);
+    const outputArcs = this.cy.edges(`[type="arc"][source="${transitionId}"]`);
 
-    for (const place of inputPlaces) {
-      this.setTokens(place.id, this.getTokens(place.id) - 1);
+    for (const edge of inputArcs) {
+      const sourceId = edge.data('source');
+      const weight = edge.data('weight') || 1;
+      this.setTokens(sourceId, this.getTokens(sourceId) - weight);
     }
 
-    for (const place of outputPlaces) {
-      this.setTokens(place.id, this.getTokens(place.id) + 1);
+    for (const edge of outputArcs) {
+      const targetId = edge.data('target');
+      const weight = edge.data('weight') || 1;
+      this.setTokens(targetId, this.getTokens(targetId) + weight);
     }
 
     return this.getMarking();
@@ -170,15 +179,16 @@ export class CytoscapePetriNet implements IPetriNet {
     return { id, label: transitionLabel, position: { x, y } };
   }
 
-  addArc(sourceId: string, targetId: string): Arc {
+  addArc(sourceId: string, targetId: string, weight?: number): Arc {
     const id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const arcWeight = weight && weight > 0 ? weight : 1;
 
     this.cy.add({
       group: 'edges',
-      data: { id, type: 'arc', source: sourceId, target: targetId },
+      data: { id, type: 'arc', source: sourceId, target: targetId, weight: arcWeight },
     });
 
-    return { id, source: sourceId, target: targetId };
+    return { id, source: sourceId, target: targetId, weight: arcWeight };
   }
 
   removeElement(id: string): void {

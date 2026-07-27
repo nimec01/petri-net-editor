@@ -16,6 +16,7 @@ export interface Arc {
   id: string;
   source: string;
   target: string;
+  weight: number;
 }
 
 export interface IPetriNet {
@@ -37,6 +38,6 @@ export interface IPetriNet {
 
   addPlace: (x: number, y: number, label?: string) => Place;
   addTransition: (x: number, y: number, label?: string) => Transition;
-  addArc: (sourceId: string, targetId: string) => Arc;
+  addArc: (sourceId: string, targetId: string, weight?: number) => Arc;
   removeElement: (id: string) => void;
 }

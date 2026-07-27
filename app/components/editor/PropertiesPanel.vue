@@ -8,12 +8,14 @@ const props = defineProps<{
 const emit = defineEmits<{
   updateLabel: [id: string, label: string];
   updateTokens: [id: string, tokens: number];
+  updateWeight: [id: string, weight: number];
   delete: [id: string];
   close: [];
 }>();
 
 const localLabel = ref('');
 const localTokens = ref(0);
+const localWeight = ref(1);
 
 watch(
   () => props.element,
@@ -21,6 +23,7 @@ watch(
     if (el) {
       localLabel.value = el.label;
       localTokens.value = el.tokens ?? 0;
+      localWeight.value = el.weight ?? 1;
     }
   },
   { immediate: true },
@@ -35,6 +38,14 @@ function onLabelInput() {
 function onTokensInput() {
   if (props.element) {
     emit('updateTokens', props.element.id, localTokens.value);
+  }
+}
+
+function onWeightInput() {
+  if (props.element) {
+    const weight = Math.max(1, Math.round(localWeight.value));
+    localWeight.value = weight;
+    emit('updateWeight', props.element.id, weight);
   }
 }
 
@@ -95,6 +106,22 @@ function decrementTokens() {
         <label class="text-xs opacity-70">Target</label>
         <div class="text-sm">
           {{ element.target }}
+        </div>
+        <label class="text-xs opacity-70 mt-2 block">Weight</label>
+        <div class="join w-full">
+          <button class="btn btn-sm join-item" @click="localWeight = Math.max(1, localWeight - 1); onWeightInput()">
+            −
+          </button>
+          <input
+            v-model.number="localWeight"
+            type="number"
+            min="1"
+            class="input input-sm text-center join-item flex-1"
+            @change="onWeightInput"
+          >
+          <button class="btn btn-sm join-item" @click="localWeight++; onWeightInput()">
+            +
+          </button>
         </div>
       </div>
 

@@ -170,6 +170,7 @@ onBeforeUnmount(() => {
             :element="selectedElement"
             @update-label="(id, label) => petriNet.setLabel(id, label)"
             @update-tokens="(id, tokens) => petriNet.setTokens(id, tokens)"
+            @update-weight="(id, weight) => petriNet.setWeight(id, weight)"
             @delete="(id) => petriNet.deleteElement(id)"
             @close="petriNet.closeProperties()"
           />

@@ -80,6 +80,17 @@ const petriNetStylesheet: cytoscape.StylesheetJson = [
       'target-arrow-shape': 'triangle',
       'curve-style': 'bezier',
       'arrow-scale': 1.2,
+      'label': (ele: NodeSingular) => {
+        const weight = ele.data('weight') as number;
+        return weight > 1 ? String(weight) : '';
+      },
+      'text-rotation': 'autorotate',
+      'font-size': '12px',
+      'color': '#374151',
+      'text-background-color': '#ffffff',
+      'text-background-opacity': 0.8,
+      'text-background-padding': '2px',
+      'text-margin-y': -15,
     },
   },
   {
@@ -140,6 +151,19 @@ export function usePetriNet() {
   let placeCount = 0;
   let transitionCount = 0;
 
+  function resolveNodeLabel(nodeId: string): string {
+    const node = cy.value?.getElementById(nodeId);
+    if (!node || node.length === 0)
+      return nodeId;
+    const label = node.data('label');
+    if (label)
+      return label;
+    const parent = node.parent().first();
+    if (parent.length > 0 && parent.data('type') === 'place')
+      return parent.data('label') || nodeId;
+    return nodeId;
+  }
+
   function initCy(container: HTMLElement): Core {
     const instance = cytoscape({
       container,
@@ -161,6 +185,23 @@ export function usePetriNet() {
         return;
       }
       const ele = e.target;
+
+      if (ele.isEdge()) {
+        const sourceId = ele.data('source');
+        const targetId = ele.data('target');
+        const sourceLabel = resolveNodeLabel(sourceId);
+        const targetLabel = resolveNodeLabel(targetId);
+        selectedElement.value = {
+          id: ele.id(),
+          type: 'arc',
+          label: `${sourceLabel} → ${targetLabel}`,
+          weight: ele.data('weight') || 1,
+          source: sourceLabel,
+          target: targetLabel,
+        };
+        return;
+      }
+
       const isWrapper = ele.data('type') === 'place';
       const parent = ele.parent().first();
       const wrapperId = isWrapper ? ele.id() : (parent.length > 0 && parent.data('type') === 'place' ? parent.id() : ele.id());
@@ -170,8 +211,6 @@ export function usePetriNet() {
         type: 'place',
         label: ele.data('label') || (isWrapper ? '' : ''),
         tokens: innerNode.data('tokens'),
-        source: ele.data('source'),
-        target: ele.data('target'),
       };
     });
 
@@ -254,7 +293,13 @@ export function usePetriNet() {
       cy.value?.getElementById(id).addClass('arc-source');
     } else {
       const sourceEle = cy.value?.getElementById(arcSourceId.value);
-      const sourceType = sourceEle?.data('type') as string;
+      let sourceType = (sourceEle?.data('type') as string) ?? '';
+      if (!sourceType) {
+        const parent = sourceEle?.parent().first();
+        if (parent && parent.length > 0 && parent.data('type') === 'place') {
+          sourceType = 'place';
+        }
+      }
 
       if (arcSourceId.value === id) {
         clearArcSource();
@@ -318,15 +363,16 @@ export function usePetriNet() {
     return id;
   }
 
-  function addArc(sourceId: string, targetId: string): string {
+  function addArc(sourceId: string, targetId: string, weight?: number): string {
     const id = generateId();
+    const arcWeight = weight && weight > 0 ? weight : 1;
     cy.value?.add({
       group: 'edges',
-      data: { id, type: 'arc', source: sourceId, target: targetId },
+      data: { id, type: 'arc', source: sourceId, target: targetId, weight: arcWeight },
     });
     pushUndo({
       type: 'add',
-      elementData: { id, type: 'arc', label: '', source: sourceId, target: targetId },
+      elementData: { id, type: 'arc', label: '', weight: arcWeight, source: sourceId, target: targetId },
     });
     elementCount.value++;
     return id;
@@ -346,6 +392,7 @@ export function usePetriNet() {
       type: deleteTarget.data('type') || 'place',
       label: deleteTarget.data('label') || '',
       tokens: deleteTarget.data('tokens'),
+      weight: deleteTarget.data('weight'),
       source: deleteTarget.data('source'),
       target: deleteTarget.data('target'),
       x: pos.x,
@@ -422,6 +469,26 @@ export function usePetriNet() {
     });
   }
 
+  function setWeight(id: string, weight: number) {
+    const ele = cy.value?.getElementById(id);
+    if (!ele || ele.length === 0)
+      return;
+
+    const clampedWeight = Math.max(1, Math.round(weight));
+    const previousWeight = (ele.data('weight') as number) || 1;
+    ele.data('weight', clampedWeight);
+
+    if (selectedElement.value?.id === id) {
+      selectedElement.value = { ...selectedElement.value, weight: clampedWeight };
+    }
+
+    pushUndo({
+      type: 'modify',
+      elementData: { id, type: 'arc', label: '', weight: clampedWeight },
+      previousData: { id, type: 'arc', label: '', weight: previousWeight },
+    });
+  }
+
   function pushUndo(command: Command) {
     undoStack.value.push(command);
     redoStack.value = [];
@@ -442,7 +509,7 @@ export function usePetriNet() {
       if (data.type === 'arc') {
         cy.value.add({
           group: 'edges',
-          data: { id: data.id, type: 'arc', source: data.source, target: data.target },
+          data: { id: data.id, type: 'arc', source: data.source, target: data.target, weight: data.weight || 1 },
         });
       } else if (data.type === 'place') {
         cy.value.add({
@@ -477,6 +544,10 @@ export function usePetriNet() {
               inner.data('tokens', prev.tokens);
             }
           }
+        } else if (prev.type === 'arc') {
+          if (prev.weight !== undefined) {
+            ele.data('weight', prev.weight);
+          }
         } else {
           ele.data('label', prev.label);
           if (prev.tokens !== undefined) {
@@ -488,6 +559,7 @@ export function usePetriNet() {
             ...selectedElement.value,
             label: prev.label ?? selectedElement.value.label,
             tokens: prev.tokens ?? selectedElement.value.tokens,
+            weight: prev.weight ?? selectedElement.value.weight,
           };
         }
       }
@@ -506,7 +578,7 @@ export function usePetriNet() {
       if (data.type === 'arc') {
         cy.value.add({
           group: 'edges',
-          data: { id: data.id, type: 'arc', source: data.source, target: data.target },
+          data: { id: data.id, type: 'arc', source: data.source, target: data.target, weight: data.weight || 1 },
         });
       } else if (data.type === 'place') {
         cy.value.add({
@@ -546,6 +618,10 @@ export function usePetriNet() {
               inner.data('tokens', data.tokens);
             }
           }
+        } else if (data.type === 'arc') {
+          if (data.weight !== undefined) {
+            ele.data('weight', data.weight);
+          }
         } else {
           ele.data('label', data.label);
           if (data.tokens !== undefined) {
@@ -557,6 +633,7 @@ export function usePetriNet() {
             ...selectedElement.value,
             label: data.label ?? selectedElement.value.label,
             tokens: data.tokens ?? selectedElement.value.tokens,
+            weight: data.weight ?? selectedElement.value.weight,
           };
         }
       }
@@ -634,6 +711,7 @@ export function usePetriNet() {
         type: ele.data('type'),
         label: ele.data('label') || '',
         tokens: ele.data('tokens'),
+        weight: ele.data('weight'),
         source: source ? (innerToWrapper.get(source) ?? source) : undefined,
         target: target ? (innerToWrapper.get(target) ?? target) : undefined,
         x: ele.isNode() ? ele.position('x') : undefined,
@@ -688,7 +766,7 @@ export function usePetriNet() {
         const target = wrapperToInner.get(el.target!) ?? el.target!;
         cy.value.add({
           group: 'edges',
-          data: { id: el.id, type: 'arc', source, target },
+          data: { id: el.id, type: 'arc', source, target, weight: el.weight || 1 },
         });
       }
     }
@@ -879,6 +957,7 @@ export function usePetriNet() {
     setTokens,
     incrementTokens,
     setLabel,
+    setWeight,
     undo,
     redo,
     zoomIn,

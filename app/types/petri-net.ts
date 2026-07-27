@@ -9,6 +9,7 @@ export interface PetriNetElementData {
   type: ElementType;
   label: string;
   tokens?: number;
+  weight?: number;
   source?: string;
   target?: string;
   x?: number;
