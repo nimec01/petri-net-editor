@@ -19,6 +19,9 @@ const autoFireSpeed = petriNet.autoFireSpeed;
 const isNetEmpty = petriNet.isNetEmpty;
 const layoutType = petriNet.layoutType;
 
+const exportModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
+const importModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
+
 const placeLabels = computed(() => {
   const labels: Record<string, string> = {};
   const pn = petriNet.petriNet.value;
@@ -31,33 +34,19 @@ const placeLabels = computed(() => {
 });
 
 function handleExport() {
-  const state = petriNet.exportToJson();
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'petri-net.json';
-  a.click();
-  URL.revokeObjectURL(url);
+  exportModal.value?.open();
+}
+
+function handleImport() {
+  importModal.value?.open();
+}
+
+function handleImportData(state: PetriNetState) {
+  petriNet.importFromJson(state);
 }
 
 function setMode(m: EditorMode) {
   mode.value = m;
-}
-
-function handleImport() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = async (e: Event) => {
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file)
-      return;
-    const text = await file.text();
-    const state = JSON.parse(text) as PetriNetState;
-    petriNet.importFromJson(state);
-  };
-  input.click();
 }
 
 function handleClearNet() {
@@ -194,5 +183,8 @@ onBeforeUnmount(() => {
         </ClientOnly>
       </div>
     </div>
+
+    <EditorExportModal ref="exportModal" :json="() => JSON.stringify(petriNet.exportToJson(), null, 2)" />
+    <EditorImportModal ref="importModal" @import="handleImportData" />
   </div>
 </template>

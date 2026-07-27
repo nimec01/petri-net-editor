@@ -4,6 +4,7 @@ import type { IPetriNet, Marking } from '~/types/petri-net-core';
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import { computed, ref, shallowRef } from 'vue';
+import { FORMAT_VERSION } from '~/constants';
 import { CytoscapePetriNet } from '~/types/cytoscape-petri-net';
 
 cytoscape.use(dagre);
@@ -692,10 +693,12 @@ export function usePetriNet() {
       return { elements: [] };
 
     const innerToWrapper = new Map<string, string>();
+    const wrapperToTokens = new Map<string, number>();
     cy.value.nodes('[type="place"] > node').forEach((inner) => {
       const parent = inner.parent().first();
       if (parent.length > 0) {
         innerToWrapper.set(inner.id(), parent.id());
+        wrapperToTokens.set(parent.id(), inner.data('tokens') ?? 0);
       }
     });
 
@@ -710,7 +713,7 @@ export function usePetriNet() {
         id: ele.id(),
         type: ele.data('type'),
         label: ele.data('label') || '',
-        tokens: ele.data('tokens'),
+        tokens: ele.data('type') === 'place' ? (wrapperToTokens.get(ele.id()) ?? 0) : ele.data('tokens'),
         weight: ele.data('weight'),
         source: source ? (innerToWrapper.get(source) ?? source) : undefined,
         target: target ? (innerToWrapper.get(target) ?? target) : undefined,
@@ -718,12 +721,18 @@ export function usePetriNet() {
         y: ele.isNode() ? ele.position('y') : undefined,
       });
     });
-    return { elements };
+    return { elements, formatVersion: FORMAT_VERSION };
   }
 
   function importFromJson(state: PetriNetState) {
     if (!cy.value)
       return;
+
+    const formatVersion = state.formatVersion ?? 0;
+    if (formatVersion > FORMAT_VERSION) {
+      console.warn(`File was created with a newer version (format v${formatVersion}). Import may be incomplete.`);
+    }
+
     cy.value.elements().remove();
     placeCount = 0;
     transitionCount = 0;

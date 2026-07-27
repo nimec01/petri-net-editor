@@ -18,6 +18,7 @@ export interface PetriNetElementData {
 
 export interface PetriNetState {
   elements: PetriNetElementData[];
+  formatVersion?: number;
 }
 
 export interface Command {
