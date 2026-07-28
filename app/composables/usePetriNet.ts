@@ -6,6 +6,7 @@ import dagre from 'cytoscape-dagre';
 import { computed, ref, shallowRef } from 'vue';
 import { FORMAT_VERSION } from '~/constants';
 import { CytoscapePetriNet } from '~/types/cytoscape-petri-net';
+import { decodeState, encodeState } from '~/utils/share';
 
 cytoscape.use(dagre);
 
@@ -709,16 +710,17 @@ export function usePetriNet() {
       }
       const source = ele.data('source');
       const target = ele.data('target');
+      const tokens = ele.data('type') === 'place' ? (wrapperToTokens.get(ele.id()) ?? 0) : ele.data('tokens') as number | undefined;
+      const weight = ele.data('weight') as number | undefined;
       elements.push({
         id: ele.id(),
         type: ele.data('type'),
         label: ele.data('label') || '',
-        tokens: ele.data('type') === 'place' ? (wrapperToTokens.get(ele.id()) ?? 0) : ele.data('tokens'),
-        weight: ele.data('weight'),
-        source: source ? (innerToWrapper.get(source) ?? source) : undefined,
-        target: target ? (innerToWrapper.get(target) ?? target) : undefined,
-        x: ele.isNode() ? ele.position('x') : undefined,
-        y: ele.isNode() ? ele.position('y') : undefined,
+        ...(tokens !== undefined && tokens !== 0 ? { tokens } : {}),
+        ...(weight !== undefined && weight !== 1 ? { weight } : {}),
+        ...(source ? { source: innerToWrapper.get(source) ?? source } : {}),
+        ...(target ? { target: innerToWrapper.get(target) ?? target } : {}),
+        ...(ele.isNode() ? { x: ele.position('x'), y: ele.position('y') } : {}),
       });
     });
     return { elements, formatVersion: FORMAT_VERSION };
@@ -930,6 +932,25 @@ export function usePetriNet() {
 
   const isNetEmpty = computed(() => elementCount.value === 0);
 
+  function shareLink(): string {
+    const state = exportToJson();
+    const encoded = encodeState(state);
+    const url = `${window.location.origin}${window.location.pathname}#${encoded}`;
+    window.location.hash = encoded;
+    return url;
+  }
+
+  function loadFromUrl(): boolean {
+    const hash = window.location.hash.slice(1);
+    if (!hash)
+      return false;
+    const state = decodeState(hash);
+    if (!state)
+      return false;
+    importFromJson(state);
+    return true;
+  }
+
   function clearNet() {
     if (!cy.value)
       return;
@@ -976,6 +997,8 @@ export function usePetriNet() {
     layoutType,
     exportToJson,
     importFromJson,
+    shareLink,
+    loadFromUrl,
     closeProperties,
     revertLastFiring,
     jumpToState,

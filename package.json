@@ -19,6 +19,7 @@
     "cytoscape-dagre": "^4.0.0",
     "dagre": "^0.8.5",
     "daisyui": "^5.7.0",
+    "fflate": "^0.8.3",
     "nuxt": "^4.5.0",
     "tailwindcss": "^4.3.3",
     "vue": "^3.5.40",

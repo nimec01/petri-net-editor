@@ -2,8 +2,10 @@
 import type { EditorMode, PetriNetState } from '~/types/petri-net';
 import IconUndo from '~icons/tabler/arrow-back-up';
 import IconRedo from '~icons/tabler/arrow-forward-up';
+import IconCheck from '~icons/tabler/check';
 import IconSave from '~icons/tabler/device-floppy-filled';
 import IconLoad from '~icons/tabler/file-upload';
+import IconLink from '~icons/tabler/link';
 import IconTrash from '~icons/tabler/trash';
 
 const petriNet = usePetriNet();
@@ -21,6 +23,7 @@ const layoutType = petriNet.layoutType;
 
 const exportModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
 const importModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
+const linkCopied = ref(false);
 
 const placeLabels = computed(() => {
   const labels: Record<string, string> = {};
@@ -54,6 +57,15 @@ function handleClearNet() {
   if (!confirm('Are you sure you want to clear the entire Petri net?'))
     return;
   petriNet.clearNet();
+}
+
+async function handleShareLink() {
+  const url = petriNet.shareLink();
+  await navigator.clipboard.writeText(url);
+  linkCopied.value = true;
+  setTimeout(() => {
+    linkCopied.value = false;
+  }, 2000);
 }
 
 function handleBeforeUnload(e: BeforeUnloadEvent) {
@@ -127,6 +139,15 @@ onBeforeUnmount(() => {
           <button class="btn btn-sm join-item" @click="handleImport">
             Load <IconLoad />
           </button>
+          <div class="tooltip tooltip-bottom" data-tip="Copy shareable link">
+            <button
+              class="btn btn-sm join-item"
+              :disabled="isNetEmpty"
+              @click="handleShareLink"
+            >
+              <component :is="linkCopied ? IconCheck : IconLink" />
+            </button>
+          </div>
           <button class="btn btn-sm btn-primary join-item" @click="handleExport">
             Save <IconSave />
           </button>

@@ -7,6 +7,7 @@ onMounted(() => {
   if (!container.value)
     return;
   petriNet.initCy(container.value);
+  petriNet.loadFromUrl();
 
   const ro = new ResizeObserver(() => {
     if (petriNet.cy.value) {

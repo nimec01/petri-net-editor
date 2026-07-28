@@ -42,4 +42,4 @@
 - [ ] **Import/export PNML** - Support standard Petri net exchange format
 - [ ] **Copy/paste** - Duplicate elements within or across nets
 - [ ] **Templates** - Predefined common patterns (choice, loop, parallel)
-- [ ] **Sharing** - URL-encoded Petri net
+- [X] **Sharing** - URL-encoded Petri net
