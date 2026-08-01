@@ -2,7 +2,7 @@
   "name": "petri-net-editor",
   "type": "module",
   "private": true,
-  "packageManager": "pnpm@11.15.1",
+  "packageManager": "pnpm@11.18.0",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
@@ -18,20 +18,20 @@
     "cytoscape": "^3.34.0",
     "cytoscape-dagre": "^4.0.0",
     "dagre": "^0.8.5",
-    "daisyui": "^5.7.0",
+    "daisyui": "^5.7.7",
     "fflate": "^0.8.3",
-    "nuxt": "^4.5.0",
+    "nuxt": "^4.5.1",
     "tailwindcss": "^4.3.3",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^9.1.0",
-    "@iconify/json": "^2.2.504",
-    "eslint": "^10.7.0",
+    "@antfu/eslint-config": "^9.2.0",
+    "@iconify/json": "^2.2.507",
+    "eslint": "^10.8.0",
     "typescript": "^6.0.3",
     "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^32.1.0",
-    "vue-tsc": "^3.3.7"
+    "vue-tsc": "^3.3.8"
   }
 }
