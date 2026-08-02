@@ -6,7 +6,7 @@ import ViteComponents from 'unplugin-vue-components/vite';
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  css: ['./assets/css/main.css'],
+  css: ['~/assets/css/main.css'],
   modules: [
     'unplugin-icons/nuxt',
   ],
