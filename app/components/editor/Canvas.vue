@@ -22,6 +22,7 @@ onMounted(() => {
 <template>
   <div
     ref="container"
+    data-testid="editor-canvas"
     class="w-full h-full"
     :class="{
       'cursor-crosshair': mode === 'place' || mode === 'transition' || mode === 'arc',

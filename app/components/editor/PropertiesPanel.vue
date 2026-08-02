@@ -73,6 +73,7 @@ function decrementTokens() {
       </h3>
       <button
         class="btn btn-ghost btn-xs"
+        data-testid="prop-close"
         @click="emit('close')"
       >
         ✕
@@ -94,6 +95,7 @@ function decrementTokens() {
           type="text"
           class="input input-sm w-full"
           placeholder="Label"
+          data-testid="prop-label"
           @input="onLabelInput"
         >
       </div>
@@ -117,6 +119,7 @@ function decrementTokens() {
             type="number"
             min="1"
             class="input input-sm text-center join-item flex-1"
+            data-testid="prop-weight"
             @change="onWeightInput"
           >
           <button class="btn btn-sm join-item" @click="localWeight++; onWeightInput()">
@@ -136,6 +139,7 @@ function decrementTokens() {
             type="number"
             min="0"
             class="input input-sm text-center join-item flex-1"
+            data-testid="prop-tokens"
             @change="onTokensInput"
           >
           <button class="btn btn-sm join-item" @click="incrementTokens">
@@ -146,6 +150,7 @@ function decrementTokens() {
 
       <button
         class="btn btn-error btn-sm w-full mt-4"
+        data-testid="prop-delete"
         @click="emit('delete', element.id)"
       >
         Delete

@@ -10,6 +10,12 @@ import { decodeState, encodeState } from '~/utils/share';
 
 cytoscape.use(dagre);
 
+declare global {
+  interface Window {
+    __PETRI_NET_DEBUG__?: ReturnType<typeof usePetriNet>;
+  }
+}
+
 let nextId = 1;
 
 function generateId(): string {
@@ -207,11 +213,12 @@ export function usePetriNet() {
       const isWrapper = ele.data('type') === 'place';
       const parent = ele.parent().first();
       const wrapperId = isWrapper ? ele.id() : (parent.length > 0 && parent.data('type') === 'place' ? parent.id() : ele.id());
+      const wrapperEle = isWrapper ? ele : (parent.length > 0 ? parent : ele);
       const innerNode = isWrapper ? ele.children().first() : ele;
       selectedElement.value = {
         id: wrapperId,
         type: 'place',
-        label: ele.data('label') || (isWrapper ? '' : ''),
+        label: wrapperEle.data('label') || '',
         tokens: innerNode.data('tokens'),
       };
     });

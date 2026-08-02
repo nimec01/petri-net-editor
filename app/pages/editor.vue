@@ -111,6 +111,9 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 }
 
 onMounted(() => {
+  if (import.meta.dev) {
+    window.__PETRI_NET_DEBUG__ = petriNet;
+  }
   window.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
       e.preventDefault();
@@ -145,6 +148,7 @@ onBeforeUnmount(() => {
             <button
               class="btn btn-sm join-item"
               :disabled="undoStack.length === 0"
+              data-testid="undo"
               @click="petriNet.undo()"
             >
               <IconUndo />
@@ -154,6 +158,7 @@ onBeforeUnmount(() => {
             <button
               class="btn btn-sm join-item"
               :disabled="redoStack.length === 0"
+              data-testid="redo"
               @click="petriNet.redo()"
             >
               <IconRedo />
@@ -167,24 +172,26 @@ onBeforeUnmount(() => {
             <button
               class="btn btn-sm btn-error join-item"
               :disabled="isNetEmpty"
+              data-testid="clear-net"
               @click="handleClearNet"
             >
               <IconTrash />
             </button>
           </div>
-          <button class="btn btn-sm join-item" @click="handleImport">
+          <button class="btn btn-sm join-item" data-testid="load" @click="handleImport">
             Load <IconLoad />
           </button>
           <div class="tooltip tooltip-bottom" data-tip="Copy shareable link">
             <button
               class="btn btn-sm join-item"
               :disabled="isNetEmpty"
+              data-testid="share"
               @click="handleShareLink"
             >
               <component :is="linkCopied ? IconCheck : IconLink" />
             </button>
           </div>
-          <button class="btn btn-sm btn-primary join-item" @click="handleExport">
+          <button class="btn btn-sm btn-primary join-item" data-testid="save" @click="handleExport">
             Save <IconSave />
           </button>
         </div>

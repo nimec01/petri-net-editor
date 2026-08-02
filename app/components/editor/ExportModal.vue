@@ -47,14 +47,15 @@ defineExpose({ open, close });
       <textarea
         class="textarea textarea-bordered w-full font-mono text-sm h-72 resize-none bg-base-300"
         readonly
+        data-testid="export-json"
         :value="currentJson"
       />
       <div class="modal-action">
-        <button class="btn btn-primary" @click="download">
+        <button class="btn btn-primary" data-testid="export-download" @click="download">
           <IconDownload />
           Download
         </button>
-        <button class="btn" @click="copyToClipboard">
+        <button class="btn" data-testid="export-copy" @click="copyToClipboard">
           <IconCopy />
           {{ copied ? 'Copied!' : 'Copy' }}
         </button>

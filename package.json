@@ -13,7 +13,7 @@
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
     "test:e2e": "playwright test",
-    "typecheck": "nuxt prepare && vue-tsc -b --noEmit && vue-tsc --noEmit -p tests/tsconfig.json",
+    "typecheck": "nuxt prepare && vue-tsc -b --noEmit && vue-tsc --noEmit -p tests/tsconfig.json && vue-tsc --noEmit -p e2e/tsconfig.json",
     "lint": "eslint",
     "lint:fix": "eslint --fix"
   },

@@ -63,6 +63,7 @@ defineExpose({ open, close });
           <textarea
             v-model="jsonText"
             class="textarea textarea-bordered w-full font-mono text-sm h-56 resize-none bg-base-300"
+            data-testid="import-json"
             placeholder="{&quot;elements&quot;: [...], &quot;version&quot;: &quot;0.1.0&quot;, &quot;formatVersion&quot;: 1}"
           />
         </div>
@@ -77,6 +78,7 @@ defineExpose({ open, close });
             type="file"
             class="file-input file-input-bordered w-full"
             accept=".json"
+            data-testid="import-file"
             @change="handleFileChange"
           >
         </div>
@@ -85,7 +87,7 @@ defineExpose({ open, close });
         </p>
       </div>
       <div class="modal-action">
-        <button class="btn btn-primary" :disabled="!jsonText.trim()" @click="handleImport">
+        <button class="btn btn-primary" :disabled="!jsonText.trim()" data-testid="import-confirm" @click="handleImport">
           <IconFileUpload />
           Import
         </button>

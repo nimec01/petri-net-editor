@@ -55,6 +55,7 @@ function toggleFireMode(currentMode: EditorMode) {
           <button
             class="btn join-item btn-sm"
             :class="{ 'btn-active btn-primary': activeMode === m.id }"
+            :data-testid="`mode-${m.id}`"
             @click="emit('update:activeMode', m.id)"
           >
             <component :is="m.icon" :style="{ 'font-size': `${m.iconSize ?? 1.2}em` }" />
@@ -65,6 +66,7 @@ function toggleFireMode(currentMode: EditorMode) {
         <button
           class="btn join-item btn-sm"
           :class="{ 'btn-active btn-primary': activeMode === 'fire' }"
+          data-testid="mode-fire"
           @click="toggleFireMode(activeMode)"
         >
           <IconFire style="font-size: 1.2em;" />
@@ -73,24 +75,24 @@ function toggleFireMode(currentMode: EditorMode) {
     </div>
     <div class="join shadow-lg">
       <div class="tooltip tooltip-bottom" data-tip="Zoom In">
-        <button class="btn join-item btn-sm" @click="emit('zoomIn')">
+        <button class="btn join-item btn-sm" data-testid="zoom-in" @click="emit('zoomIn')">
           <IconZoomIn style="font-size: 1.2em;" />
         </button>
       </div>
       <div class="tooltip tooltip-bottom" data-tip="Zoom Out">
-        <button class="btn join-item btn-sm" @click="emit('zoomOut')">
+        <button class="btn join-item btn-sm" data-testid="zoom-out" @click="emit('zoomOut')">
           <IconZoomOut style="font-size: 1.2em;" />
         </button>
       </div>
       <div class="tooltip tooltip-bottom" data-tip="Fit to Screen">
-        <button class="btn join-item btn-sm" @click="emit('zoomToFit')">
+        <button class="btn join-item btn-sm" data-testid="zoom-fit" @click="emit('zoomToFit')">
           <IconFitScreen style="font-size: 1.2em;" />
         </button>
       </div>
     </div>
     <div class="dropdown dropdown-bottom">
       <div class="tooltip tooltip-bottom" data-tip="Auto Layout">
-        <button class="btn btn-sm shadow-lg" style="font-size: 1.2em;">
+        <button class="btn btn-sm shadow-lg" style="font-size: 1.2em;" data-testid="layout-dropdown">
           <IconLayout />
         </button>
       </div>

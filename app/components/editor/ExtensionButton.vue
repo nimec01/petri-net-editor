@@ -16,6 +16,7 @@ const emit = defineEmits<{
       class="btn btn-sm shadow-lg"
       :class="{ 'btn-active': open }"
       aria-label="Toggle extensions drawer"
+      data-testid="extensions-toggle"
       @click="emit('toggle')"
     >
       <IconPuzzle />

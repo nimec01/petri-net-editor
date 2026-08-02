@@ -50,6 +50,7 @@ watch(() => props.history.length, () => {
         <button
           class="btn btn-ghost btn-xs"
           :disabled="history.length === 0"
+          data-testid="history-revert"
           @click="emit('revert')"
         >
           <IconArrowBackUp style="font-size: 1em;" />
@@ -57,6 +58,7 @@ watch(() => props.history.length, () => {
         <button
           class="btn btn-ghost btn-xs"
           :disabled="history.length === 0"
+          data-testid="history-clear"
           @click="emit('clear')"
         >
           <IconTrash style="font-size: 1em;" />
@@ -69,6 +71,7 @@ watch(() => props.history.length, () => {
         <button
           class="btn btn-xs"
           :class="autoFiring ? 'btn-error' : 'btn-success'"
+          data-testid="auto-fire"
           @click="emit('toggleAutoFire')"
         >
           <IconPlayerPause v-if="autoFiring" style="font-size: 1em;" />
@@ -79,6 +82,7 @@ watch(() => props.history.length, () => {
         <button
           class="btn btn-xs btn-ghost"
           :disabled="autoFiring"
+          data-testid="fire-one-step"
           @click="emit('autoFireN', 1)"
         >
           <IconPlayerSkipForward style="font-size: 1em;" />
@@ -91,12 +95,14 @@ watch(() => props.history.length, () => {
           min="1"
           max="100"
           class="input input-xs join-item w-full"
+          data-testid="fire-n"
           :disabled="autoFiring"
           @keydown.enter="emit('autoFireN', nSteps)"
         >
         <button
           class="btn btn-xs btn-primary join-item"
           :disabled="autoFiring || nSteps < 1"
+          data-testid="fire-go"
           @click="emit('autoFireN', nSteps)"
         >
           Go
@@ -113,6 +119,7 @@ watch(() => props.history.length, () => {
         step="100"
         :value="autoFireSpeed"
         class="range range-xs range-primary flex-1"
+        data-testid="fire-speed"
         @input="emit('update:autoFireSpeed', Number(($event.target as HTMLInputElement).value))"
       >
       <span class="text-xs font-mono w-10 text-right">{{ autoFireSpeed }}ms</span>
@@ -127,6 +134,7 @@ watch(() => props.history.length, () => {
           v-for="entry in history"
           :key="entry.id"
           class="list-row items-center text-sm py-1 px-4 cursor-pointer hover:bg-base-300"
+          :data-testid="`history-entry-${entry.id}`"
           @click="emit('jump', entry.id)"
         >
           <div class="flex flex-col flex-1 min-w-0">
