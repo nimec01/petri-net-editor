@@ -8,7 +8,7 @@
     },
     "ghcr.io/w3cj/devcontainer-features/firewall:latest": {
       "verbose": true,
-      "hosts": "172.65.90.20,172.65.90.21,172.65.90.22,172.65.90.23,opencode.ai,nuxt.com",
+      "hosts": "172.65.90.20,172.65.90.21,172.65.90.22,172.65.90.23,opencode.ai,nuxt.com,deb.debian.org",
       "githubIps": true,
       "githubDomains": true,
       "npmRegistry": true,
