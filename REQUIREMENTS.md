@@ -27,10 +27,10 @@
 
 ## Analysis
 
-- [ ] **Reachability check** - Determine if a target marking can be reached
-- [ ] **Liveness check** - Verify all transitions are potentially fireable
-- [ ] **Boundedness check** - Check if place capacities are finite
-- [ ] **Deadlock detection** - Identify markings with no enabled transitions
+- [X] **Reachability check** - Determine if a target marking can be reached
+- [X] **Liveness check** - Verify all transitions are potentially fireable
+- [X] **Boundedness check** - Check if place capacities are finite
+- [X] **Deadlock detection** - Identify markings with no enabled transitions
 
 ## Unfolding
 

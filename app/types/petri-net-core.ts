@@ -32,6 +32,9 @@ export interface IPetriNet {
   getInputPlaces: (transitionId: string) => Place[];
   getOutputPlaces: (transitionId: string) => Place[];
 
+  getPreMarking: (transitionId: string) => Marking;
+  getPostMarking: (transitionId: string) => Marking;
+
   isTransitionEnabled: (transitionId: string) => boolean;
   getEnabledTransitions: () => Transition[];
   fireTransition: (transitionId: string) => Marking | null;

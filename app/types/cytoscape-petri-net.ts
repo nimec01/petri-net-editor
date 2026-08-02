@@ -107,6 +107,40 @@ export class CytoscapePetriNet implements IPetriNet {
       .filter((p): p is Place => p !== null);
   }
 
+  private edgePlaceId(nodeId: string): string | null {
+    const ele = this.cy.getElementById(nodeId);
+    if (ele.length === 0 || ele.data('type') === 'transition') {
+      return null;
+    }
+    const parent = ele.parent().first();
+    if (parent.length > 0 && parent.data('type') === 'place') {
+      return parent.id();
+    }
+    return ele.id();
+  }
+
+  getPreMarking(transitionId: string): Marking {
+    const marking: Marking = {};
+    this.cy.edges(`[type="arc"][target="${transitionId}"]`).forEach((edge) => {
+      const placeId = this.edgePlaceId(edge.data('source'));
+      if (placeId) {
+        marking[placeId] = (marking[placeId] || 0) + (edge.data('weight') || 1);
+      }
+    });
+    return marking;
+  }
+
+  getPostMarking(transitionId: string): Marking {
+    const marking: Marking = {};
+    this.cy.edges(`[type="arc"][source="${transitionId}"]`).forEach((edge) => {
+      const placeId = this.edgePlaceId(edge.data('target'));
+      if (placeId) {
+        marking[placeId] = (marking[placeId] || 0) + (edge.data('weight') || 1);
+      }
+    });
+    return marking;
+  }
+
   isTransitionEnabled(transitionId: string): boolean {
     const inputArcs = this.cy.edges(`[type="arc"][target="${transitionId}"]`);
     if (inputArcs.length === 0) {

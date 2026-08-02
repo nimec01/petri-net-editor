@@ -10,6 +10,7 @@ import IconZoomOut from '~icons/tabler/zoom-out';
 defineProps<{
   activeMode: EditorMode;
   currentLayout: LayoutType;
+  extensionsOpen: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -18,6 +19,7 @@ const emit = defineEmits<{
   'zoomOut': [];
   'zoomToFit': [];
   'applyLayout': [type: LayoutType];
+  'toggleExtensions': [];
 }>();
 
 const editModes: { id: EditorMode; icon: Component; iconSize?: number; label: string }[] = [
@@ -103,5 +105,6 @@ function toggleFireMode(currentMode: EditorMode) {
         </li>
       </ul>
     </div>
+    <EditorExtensionButton :open="extensionsOpen" @toggle="emit('toggleExtensions')" />
   </div>
 </template>
