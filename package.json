@@ -9,8 +9,10 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "pnpm run test:unit && pnpm run test:e2e",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:e2e": "playwright test",
     "typecheck": "nuxt prepare && vue-tsc -b --noEmit && vue-tsc --noEmit -p tests/tsconfig.json",
     "lint": "eslint",
     "lint:fix": "eslint --fix"
@@ -32,6 +34,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^9.2.0",
     "@iconify/json": "^2.2.507",
+    "@playwright/test": "^1.62.1",
     "@types/node": "^26.1.2",
     "eslint": "^10.8.0",
     "typescript": "^6.0.3",
