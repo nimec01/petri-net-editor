@@ -13,12 +13,15 @@
 pnpm install        # install deps
 pnpm dev            # dev server on :3000
 pnpm build          # production build
-pnpm typecheck      # nuxt prepare + vue-tsc -b --noEmit (generates .nuxt/tsconfig first)
+pnpm test           # vitest run (unit tests in tests/)
+pnpm typecheck      # nuxt prepare + vue-tsc -b --noEmit (app) + vue-tsc -p tests/tsconfig.json (tests)
 pnpm lint           # eslint
 pnpm lint:fix        # eslint --fix
 ```
 
-No test framework is configured. There is no test script.
+Unit tests use Vitest (`vitest.config.ts` aliases `~` and `@` to `app/`). Test doubles
+live under `tests/helpers/`, unit tests under `tests/unit/`. `tests/tsconfig.json`
+extends `.nuxt/tsconfig.app.json` so the `~` alias resolves inside tests.
 
 ## Verification order (matches CI)
 
