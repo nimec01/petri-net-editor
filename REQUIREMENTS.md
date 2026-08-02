@@ -7,7 +7,6 @@
 - [X] **Create/edit/delete arcs** - Draw directed edges from places to transitions and transitions to places
 - [X] **Add/remove tokens** - Click on places to toggle tokens or set specific counts
 - [X] **Drag & drop positioning** - Move elements freely on the canvas
-- [ ] **Multi-select** - Select multiple elements for batch operations
 - [X] **Undo/redo** - Revert and restore actions with history
 - [X] **Save/load** - Persist Petri nets to file (JSON or PNML format)
 
@@ -41,5 +40,4 @@
 
 - [ ] **Import/export PNML** - Support standard Petri net exchange format
 - [ ] **Copy/paste** - Duplicate elements within or across nets
-- [ ] **Templates** - Predefined common patterns (choice, loop, parallel)
 - [X] **Sharing** - URL-encoded Petri net
