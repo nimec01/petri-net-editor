@@ -46,6 +46,12 @@ CI runs build first — `pnpm typecheck` depends on `.nuxt/` output from build o
 - `tsconfig.json` uses Nuxt-generated references in `.nuxt/`; do not edit manually
 - `pnpm-workspace.yaml` disables esbuild and `@parcel/watcher` native builds
 
+## Do not modify tests
+
+- Never edit test files: this includes `tests/`, `e2e/`, and any test helpers, fixtures, or configs (e.g. `vitest.config.ts`, `playwright.config.ts`).
+- Never change, weaken, skip, or delete tests in order to make them pass. If a test fails, fix the implementation, not the test.
+- The only exception: tests may be updated when a deliberate, breaking change to the implementation makes the existing expectation invalid — and even then only update the specific expectation that is no longer correct.
+
 ## Environment
 
 - Nuxt MCP server is connected (`opencode.jsonc`) — available for Nuxt API/docs questions
