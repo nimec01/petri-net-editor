@@ -5,10 +5,28 @@ on:
   push:
     branches: [main]
     paths-ignore:
+      - '**/*.md'
       - '.changeset/**'
-      - '.vscode/**'
       - '.devcontainer/**'
+      - '.vscode/**'
+      - '.agents/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'LICENSE.*'
+      - 'opencode.jsonc'
+      - 'skills-lock.json'
   pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - '.changeset/**'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - '.agents/**'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'LICENSE.*'
+      - 'opencode.jsonc'
+      - 'skills-lock.json'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
