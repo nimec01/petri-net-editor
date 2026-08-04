@@ -3,6 +3,29 @@
   "type": "module",
   "private": true,
   "packageManager": "pnpm@11.18.0",
+  "description": "Interactive, browser-based Petri net editor with simulation and analysis tooling",
+  "author": {
+    "name": "nimec01"
+  },
+  "license": "AGPL-3.0-or-later",
+  "homepage": "https://github.com/nimec01/petri-net-editor#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nimec01/petri-net-editor.git"
+  },
+  "bugs": {
+    "url": "https://github.com/nimec01/petri-net-editor/issues"
+  },
+  "keywords": [
+    "petri-net",
+    "petri-nets",
+    "editor",
+    "simulation",
+    "analysis",
+    "nuxt",
+    "vue",
+    "cytoscape"
+  ],
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
