@@ -49,6 +49,8 @@ jobs:
 
       - name: Setup PNPM and Node
         uses: pnpm/setup@v2
+        with:
+          runtime: node@24.18.0
 
       - name: Build
         run: pnpm build
@@ -72,6 +74,8 @@ jobs:
 
       - name: Setup PNPM and Node
         uses: pnpm/setup@v2
+        with:
+          runtime: node@24.18.0
 
       - name: Run tests
         run: pnpm run test:unit
@@ -89,6 +93,8 @@ jobs:
 
       - name: Setup PNPM and Node
         uses: pnpm/setup@v2
+        with:
+          runtime: node@24.18.0
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
