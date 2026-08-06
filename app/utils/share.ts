@@ -1,4 +1,4 @@
-import type { PetriNetState } from '~/types/petri-net';
+import type { PetriNetElementData, PetriNetState } from '~/types/petri-net';
 import { deflateSync, inflateSync } from 'fflate';
 
 function uint8ToBase64url(bytes: Uint8Array): string {
@@ -43,4 +43,31 @@ export function decodeState(encoded: string): PetriNetState | null {
   } catch {
     return null;
   }
+}
+
+export interface PostLoadBody {
+  net?: PetriNetState;
+  elements?: PetriNetElementData[];
+  formatVersion?: number;
+}
+
+export function parseNetState(body: unknown): PetriNetState | null {
+  let candidate = body;
+  if (typeof candidate === 'string') {
+    try {
+      candidate = JSON.parse(candidate);
+    } catch {
+      return null;
+    }
+  }
+  if (typeof candidate !== 'object' || candidate === null) {
+    return null;
+  }
+
+  const parsed = candidate as PostLoadBody;
+  const state = (Array.isArray(parsed.elements) ? parsed : parsed.net) as PetriNetState | undefined;
+  if (!state || !Array.isArray(state.elements)) {
+    return null;
+  }
+  return state;
 }

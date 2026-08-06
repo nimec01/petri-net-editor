@@ -14,7 +14,7 @@ Built with [Nuxt](https://nuxt.com/) 4, Vue 3, TypeScript, [Cytoscape.js](https:
 - **Simulation** — manually fire enabled transitions, run automatic random firing, step through executions, and inspect the firing history / trace
 - **Analysis** — extensions for reachability, reachability graphs, boundedness, liveness, safeness, and deadlock detection
 - **Math notation** — render state equations and formulas with KaTeX
-- **Persistence** — save/load nets to JSON and share a net as an encoded URL
+- **Persistence** — save/load nets to JSON, share a net as an encoded URL, or load it by sending it to the server with a POST request
 - **Enabled-transition highlighting** — see at a glance which transitions can fire
 
 ## Getting started
@@ -52,6 +52,34 @@ pnpm lint           # ESLint
 ```
 
 Continuous integration runs build, typecheck, lint, unit tests, and Playwright tests on every push to `main` and on pull requests.
+
+## Loading a net via POST
+
+Besides shareable links, the editor can be opened with a pre-defined net by sending a `POST` request to `/editor`. The request body is the JSON representation of the net (the same format produced by **Save**), either as a raw object or wrapped in a `net` field:
+
+```bash
+curl -X POST http://localhost:3000/editor \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "net": {
+      "elements": [
+        { "id": "p1", "type": "place", "label": "P1", "tokens": 2, "x": 100, "y": 200 },
+        { "id": "t1", "type": "transition", "label": "T1", "x": 250, "y": 200 },
+        { "id": "a1", "type": "arc", "label": "", "source": "p1", "target": "t1" }
+      ]
+    }
+  }'
+```
+
+A successful request responds with a `303 See Other` redirect to `/editor#<encoded-net>`, and the editor loads the net. An invalid body (no `elements` array) is rejected with a `400 Bad Request`.
+
+FormData is supported as well — send the same JSON in a `net` field:
+
+```js
+const form = new FormData();
+form.append('net', JSON.stringify({ elements: [{ id: 'p1', type: 'place', label: 'P1', tokens: 2, x: 100, y: 200 }] }));
+await fetch('/editor', { method: 'POST', body: form });
+```
 
 ## Project structure
 
