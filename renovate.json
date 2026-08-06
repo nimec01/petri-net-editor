@@ -1,0 +1,50 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "group:recommended",
+    "schedule:automergeDaily"
+  ],
+  "enabledManagers": [
+    "npm",
+    "docker",
+    "dockerfile",
+    "github-actions"
+  ],
+  "packageRules": [
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "pinDigests": true
+    },
+    {
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "patch"
+      ],
+      "matchCurrentVersion": ">=1.0.0",
+      "groupName": "all patch updates",
+      "groupSlug": "all-patch",
+      "automerge": true,
+      "platformAutomerge": true
+    },
+    {
+      "matchPackageNames": [
+        "docker/**"
+      ],
+      "groupName": "docker",
+      "groupSlug": "docker"
+    },
+    {
+      "matchPackageNames": [
+        "pnpm"
+      ],
+      "enabled": false
+    }
+  ],
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict"
+}
