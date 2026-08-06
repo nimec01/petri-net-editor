@@ -10,11 +10,11 @@ on:
       - '.devcontainer/**'
       - '.vscode/**'
       - '.agents/**'
-      - '.gitignore'
-      - 'LICENSE'
+      - .gitignore
+      - LICENSE
       - 'LICENSE.*'
-      - 'opencode.jsonc'
-      - 'skills-lock.json'
+      - opencode.jsonc
+      - skills-lock.json
   pull_request:
     paths-ignore:
       - '**/*.md'
@@ -22,11 +22,11 @@ on:
       - '.devcontainer/**'
       - '.vscode/**'
       - '.agents/**'
-      - '.gitignore'
-      - 'LICENSE'
+      - .gitignore
+      - LICENSE
       - 'LICENSE.*'
-      - 'opencode.jsonc'
-      - 'skills-lock.json'
+      - opencode.jsonc
+      - skills-lock.json
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -47,17 +47,8 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: lts/*
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm ci
+      - name: Setup PNPM and Node
+        uses: pnpm/setup@v2
 
       - name: Build
         run: pnpm build
@@ -79,17 +70,8 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: lts/*
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm ci
+      - name: Setup PNPM and Node
+        uses: pnpm/setup@v2
 
       - name: Run tests
         run: pnpm run test:unit
@@ -105,17 +87,8 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Setup PNPM
-        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
-
-      - name: Setup Node
-        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
-        with:
-          node-version: lts/*
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm ci
+      - name: Setup PNPM and Node
+        uses: pnpm/setup@v2
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps

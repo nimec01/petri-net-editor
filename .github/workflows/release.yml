@@ -1,0 +1,43 @@
+name: Release
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  packages: write
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [Continuous Integration]
+    types:
+      - completed
+    branches:
+      - master
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    outputs:
+      publishedPackages: ${{ steps.changesets.outputs.publishedPackages }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+
+      - name: Pull Tags
+        run: git pull --tags
+
+      - name: Setup PNPM and Node
+        uses: pnpm/setup@v2
+
+      - name: Create Release Pull Request
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          publish: pnpm changeset tag
+          title: Release package(s)
+          commit: release package(s)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
