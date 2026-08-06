@@ -46,6 +46,11 @@ CI runs build first — `pnpm typecheck` depends on `.nuxt/` output from build o
 - `tsconfig.json` uses Nuxt-generated references in `.nuxt/`; do not edit manually
 - `pnpm-workspace.yaml` disables esbuild and `@parcel/watcher` native builds
 
+## Changesets
+
+- Add a changeset for each change using `pnpm changeset`. Follow the prompt to choose a version bump (patch for fixes, minor for features, major for breaking changes) and describe the change.
+- Changesets live in `.changeset/` and are consumed by `pnpm changeset version` at release time.
+
 ## Do not modify tests
 
 - Never edit test files: this includes `tests/`, `e2e/`, and any test helpers, fixtures, or configs (e.g. `vitest.config.ts`, `playwright.config.ts`).
