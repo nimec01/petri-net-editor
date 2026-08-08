@@ -51,6 +51,7 @@
   "internalChecksFilter": "strict",
   "automergeType": "pr",
   "gitIgnoredAuthors": [
-    "github-actions@github.com"
+    "github-actions@github.com",
+    "24428341+nimec01@users.noreply.github.com"
   ]
 }

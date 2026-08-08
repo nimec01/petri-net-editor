@@ -18,3 +18,4 @@ jobs:
           use-conventional-commits: false
           author-name: github-actions
           author-email: github-actions@github.com
+          sign-commits: true
