@@ -15,6 +15,6 @@ jobs:
         uses: mscharley/dependency-changesets-action@v1.2.5
         with:
           token: ${{ secrets.DEPENDENCY_UPDATE_GITHUB_TOKEN }}
-          use-conventional-commits: true
+          use-conventional-commits: false
           author-name: github-actions
           author-email: github-actions@github.com
