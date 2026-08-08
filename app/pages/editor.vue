@@ -3,6 +3,7 @@ import type { ExtensionContext } from '~/types/extension';
 import type { EditorMode, PetriNetState } from '~/types/petri-net';
 import IconUndo from '~icons/tabler/arrow-back-up';
 import IconRedo from '~icons/tabler/arrow-forward-up';
+import IconGithub from '~icons/tabler/brand-github';
 import IconCheck from '~icons/tabler/check';
 import IconSave from '~icons/tabler/device-floppy-filled';
 import IconLoad from '~icons/tabler/file-upload';
@@ -15,9 +16,13 @@ import mathNotationExtension from '~/extensions/math-notation';
 import reachabilityExtension from '~/extensions/reachability';
 import reachabilityGraphExtension from '~/extensions/reachability-graph';
 import safenessExtension from '~/extensions/safeness';
+import { version } from '../../package.json';
 
 const petriNet = usePetriNet();
 provide('petriNet', petriNet);
+
+const githubUrl = 'https://github.com/nimec01/petri-net-editor';
+const releaseUrl = `${githubUrl}/releases`;
 
 const mode = petriNet.mode;
 const selectedElement = petriNet.selectedElement;
@@ -141,6 +146,16 @@ onBeforeUnmount(() => {
     <div class="navbar bg-base-200 shadow-md px-4">
       <div class="navbar-start">
         <span class="text-lg font-bold">Petri Net Editor</span>
+        <a
+          class="badge badge-sm badge-primary ml-2"
+          :href="releaseUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="version-badge"
+          :title="`View v${version} release`"
+        >
+          v{{ version }}
+        </a>
       </div>
       <div class="navbar-center">
         <div class="join">
@@ -195,6 +210,17 @@ onBeforeUnmount(() => {
             Save <IconSave />
           </button>
         </div>
+        <a
+          class="btn btn-sm btn-ghost ml-2"
+          :href="githubUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub repository"
+          title="GitHub repository"
+          data-testid="github-link"
+        >
+          <IconGithub />
+        </a>
       </div>
     </div>
 
