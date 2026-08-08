@@ -3,6 +3,7 @@ import type { ExtensionContext } from '~/types/extension';
 import type { EditorMode, PetriNetState } from '~/types/petri-net';
 import IconUndo from '~icons/tabler/arrow-back-up';
 import IconRedo from '~icons/tabler/arrow-forward-up';
+import IconGithub from '~icons/tabler/brand-github';
 import IconCheck from '~icons/tabler/check';
 import IconSave from '~icons/tabler/device-floppy-filled';
 import IconLoad from '~icons/tabler/file-upload';
@@ -15,9 +16,13 @@ import mathNotationExtension from '~/extensions/math-notation';
 import reachabilityExtension from '~/extensions/reachability';
 import reachabilityGraphExtension from '~/extensions/reachability-graph';
 import safenessExtension from '~/extensions/safeness';
+import { version } from '../../package.json';
 
 const petriNet = usePetriNet();
 provide('petriNet', petriNet);
+
+const githubUrl = 'https://github.com/nimec01/petri-net-editor';
+const releaseUrl = `${githubUrl}/releases`;
 
 const mode = petriNet.mode;
 const selectedElement = petriNet.selectedElement;
@@ -141,6 +146,16 @@ onBeforeUnmount(() => {
     <div class="navbar bg-base-200 shadow-md px-4">
       <div class="navbar-start">
         <span class="text-lg font-bold">Petri Net Editor</span>
+        <a
+          class="badge badge-sm badge-primary ml-2"
+          :href="releaseUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          data-testid="version-badge"
+          :title="`View v${version} release`"
+        >
+          v{{ version }}
+        </a>
       </div>
       <div class="navbar-center">
         <div class="join">
@@ -195,69 +210,72 @@ onBeforeUnmount(() => {
             Save <IconSave />
           </button>
         </div>
+        <a
+          class="btn btn-sm btn-ghost ml-2"
+          :href="githubUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub repository"
+          title="GitHub repository"
+          data-testid="github-link"
+        >
+          <IconGithub />
+        </a>
       </div>
     </div>
 
-    <div class="flex-1 relative overflow-hidden">
-      <ClientOnly>
-        <EditorCanvas />
-      </ClientOnly>
+    <ClientOnly>
+      <EditorExtensionDrawer
+        :open="extensionDrawerOpen"
+        :extensions="extensionList"
+        @select="handleExtensionSelect"
+        @close="extensionDrawerOpen = false"
+      >
+        <div class="h-full relative overflow-hidden">
+          <EditorCanvas />
 
-      <ClientOnly>
-        <EditorExtensionDrawer
-          :open="extensionDrawerOpen"
-          :extensions="extensionList"
-          @select="handleExtensionSelect"
-          @close="extensionDrawerOpen = false"
-        />
-      </ClientOnly>
+          <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+            <EditorToolbar
+              :active-mode="mode"
+              :current-layout="layoutType"
+              :extensions-open="extensionDrawerOpen"
+              @update:active-mode="setMode"
+              @zoom-in="petriNet.zoomIn()"
+              @zoom-out="petriNet.zoomOut()"
+              @zoom-to-fit="petriNet.zoomToFit()"
+              @apply-layout="(type) => petriNet.applyLayout(type)"
+              @toggle-extensions="toggleExtensionDrawer"
+            />
+          </div>
 
-      <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
-        <ClientOnly>
-          <EditorToolbar
-            :active-mode="mode"
-            :current-layout="layoutType"
-            :extensions-open="extensionDrawerOpen"
-            @update:active-mode="setMode"
-            @zoom-in="petriNet.zoomIn()"
-            @zoom-out="petriNet.zoomOut()"
-            @zoom-to-fit="petriNet.zoomToFit()"
-            @apply-layout="(type) => petriNet.applyLayout(type)"
-            @toggle-extensions="toggleExtensionDrawer"
-          />
-        </ClientOnly>
-      </div>
+          <div class="absolute top-4 right-4 z-10">
+            <EditorPropertiesPanel
+              :element="selectedElement"
+              @update-label="(id, label) => petriNet.setLabel(id, label)"
+              @update-tokens="(id, tokens) => petriNet.setTokens(id, tokens)"
+              @update-weight="(id, weight) => petriNet.setWeight(id, weight)"
+              @delete="(id) => petriNet.deleteElement(id)"
+              @close="petriNet.closeProperties()"
+            />
+          </div>
 
-      <div class="absolute top-4 right-4 z-10">
-        <ClientOnly>
-          <EditorPropertiesPanel
-            :element="selectedElement"
-            @update-label="(id, label) => petriNet.setLabel(id, label)"
-            @update-tokens="(id, tokens) => petriNet.setTokens(id, tokens)"
-            @update-weight="(id, weight) => petriNet.setWeight(id, weight)"
-            @delete="(id) => petriNet.deleteElement(id)"
-            @close="petriNet.closeProperties()"
-          />
-        </ClientOnly>
-      </div>
-
-      <div v-if="mode === 'fire'" class="absolute top-4 left-4 z-10">
-        <ClientOnly>
-          <EditorFireHistory
-            :history="firingHistory"
-            :place-labels="placeLabels"
-            :auto-firing="autoFiring"
-            :auto-fire-speed="autoFireSpeed"
-            @clear="petriNet.clearHistory()"
-            @revert="petriNet.revertLastFiring()"
-            @jump="(id) => petriNet.jumpToState(id)"
-            @toggle-auto-fire="petriNet.toggleAutoFire()"
-            @auto-fire-n="(n) => petriNet.autoFireN(n)"
-            @update:auto-fire-speed="(s) => petriNet.setAutoFireSpeed(s)"
-          />
-        </ClientOnly>
-      </div>
-    </div>
+          <div v-if="mode === 'fire'" class="absolute top-4 left-4 z-10">
+            <EditorFireHistory
+              :history="firingHistory"
+              :place-labels="placeLabels"
+              :auto-firing="autoFiring"
+              :auto-fire-speed="autoFireSpeed"
+              @clear="petriNet.clearHistory()"
+              @revert="petriNet.revertLastFiring()"
+              @jump="(id) => petriNet.jumpToState(id)"
+              @toggle-auto-fire="petriNet.toggleAutoFire()"
+              @auto-fire-n="(n) => petriNet.autoFireN(n)"
+              @update:auto-fire-speed="(s) => petriNet.setAutoFireSpeed(s)"
+            />
+          </div>
+        </div>
+      </EditorExtensionDrawer>
+    </ClientOnly>
 
     <EditorExportModal ref="exportModal" :json="() => JSON.stringify(petriNet.exportToJson(), null, 2)" />
     <EditorImportModal ref="importModal" @import="handleImportData" />
