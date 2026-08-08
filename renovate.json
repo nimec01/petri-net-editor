@@ -3,7 +3,8 @@
   "extends": [
     "config:recommended",
     "group:recommended",
-    "schedule:automergeDaily"
+    "schedule:automergeDaily",
+    ":label(dependencies)"
   ],
   "enabledManagers": [
     "npm",
@@ -47,5 +48,9 @@
     }
   ],
   "minimumReleaseAge": "3 days",
-  "internalChecksFilter": "strict"
+  "internalChecksFilter": "strict",
+  "automergeType": "pr",
+  "gitIgnoredAuthors": [
+    "github-actions@github.com"
+  ]
 }
