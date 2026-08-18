@@ -47,25 +47,25 @@
     "cytoscape": "3.34.0",
     "cytoscape-dagre": "4.0.0",
     "dagre": "0.8.5",
-    "daisyui": "5.7.7",
+    "daisyui": "5.7.16",
     "fflate": "0.8.3",
-    "katex": "0.18.1",
-    "nuxt": "4.5.1",
+    "katex": "0.18.4",
+    "nuxt": "4.5.2",
     "tailwindcss": "4.3.3",
-    "vue": "3.5.40",
+    "vue": "3.5.41",
     "vue-router": "5.2.0"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "9.2.0",
+    "@antfu/eslint-config": "9.3.0",
     "@changesets/cli": "2.31.1",
-    "@iconify/json": "2.2.507",
+    "@iconify/json": "2.2.512",
     "@playwright/test": "1.62.1",
-    "@types/node": "26.1.2",
-    "eslint": "10.8.0",
+    "@types/node": "26.2.0",
+    "eslint": "10.8.1",
     "typescript": "6.0.3",
     "unplugin-icons": "23.0.1",
     "unplugin-vue-components": "32.1.0",
     "vitest": "4.1.10",
-    "vue-tsc": "3.3.8"
+    "vue-tsc": "3.3.9"
   }
 }

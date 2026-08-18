@@ -30,7 +30,7 @@ jobs:
         run: git pull --tags
 
       - name: Setup PNPM and Node
-        uses: pnpm/setup@v2
+        uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
 
       - name: Create Release Pull Request
         id: changesets
