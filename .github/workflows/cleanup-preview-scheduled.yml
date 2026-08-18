@@ -2,7 +2,7 @@ name: Cleanup Old Preview Deployments
 
 on:
   schedule:
-    - cron: '0 0 * * 1'  # Weekly on Monday at 00:00 UTC
+    - cron: '0 0 * * 1' # Weekly on Monday at 00:00 UTC
   workflow_dispatch:
 
 jobs:
@@ -19,23 +19,23 @@ jobs:
           # Calculate threshold date (14 days ago)
           THRESHOLD=$(date -u -d "14 days ago" +%Y-%m-%dT%H:%M:%SZ)
           echo "Deleting preview deployments older than ${THRESHOLD}"
-          
+
           # List all preview deployments
           DEPLOYMENTS=$(curl -s -X GET \
             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/petri-net-editor/deployments?env=preview" \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             -H "Content-Type: application/json")
-          
+
           # Extract deployment IDs older than threshold
           DEPLOY_IDS=$(echo "$DEPLOYMENTS" | jq -r \
             --arg threshold "$THRESHOLD" \
             '.result[] | select(.created_on < $threshold) | .id')
-          
+
           if [ -z "$DEPLOY_IDS" ]; then
             echo "No old deployments found"
             exit 0
           fi
-          
+
           # Delete each old deployment
           for DEPLOY_ID in $DEPLOY_IDS; do
             echo "Deleting old deployment: ${DEPLOY_ID}"
@@ -45,5 +45,5 @@ jobs:
               -H "Content-Type: application/json"
             echo ""
           done
-          
+
           echo "Scheduled cleanup complete"

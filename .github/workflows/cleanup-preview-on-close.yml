@@ -17,25 +17,25 @@ jobs:
         run: |
           PR_NUMBER="${{ github.event.pull_request.number }}"
           BRANCH="pr-${PR_NUMBER}"
-          
+
           echo "Cleaning up preview deployments for PR #${PR_NUMBER} (branch: ${BRANCH})"
-          
+
           # List all preview deployments
           DEPLOYMENTS=$(curl -s -X GET \
             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/petri-net-editor/deployments?env=preview" \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             -H "Content-Type: application/json")
-          
+
           # Extract deployment IDs matching the branch
           DEPLOY_IDS=$(echo "$DEPLOYMENTS" | jq -r \
             --arg branch "$BRANCH" \
             '.result[] | select(.deployment_trigger.metadata.branch == $branch) | .id')
-          
+
           if [ -z "$DEPLOY_IDS" ]; then
             echo "No deployments found for branch ${BRANCH}"
             exit 0
           fi
-          
+
           # Delete each matching deployment
           for DEPLOY_ID in $DEPLOY_IDS; do
             echo "Deleting deployment: ${DEPLOY_ID}"
@@ -45,5 +45,5 @@ jobs:
               -H "Content-Type: application/json"
             echo ""
           done
-          
+
           echo "Cleanup complete for PR #${PR_NUMBER}"
