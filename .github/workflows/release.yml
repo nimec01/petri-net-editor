@@ -34,10 +34,8 @@ jobs:
 
       - name: Create Release Pull Request
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@198f833dd7d863100ea6e28967bc9a9fdefadb0a # v2.1.0
         with:
-          publish: pnpm changeset tag
-          title: Release package(s)
-          commit: release package(s)
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          publish-script: pnpm changeset git-tag
+          pr-title: Release package(s)
+          commit-message: release package(s)
