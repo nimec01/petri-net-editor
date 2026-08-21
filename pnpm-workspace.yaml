@@ -3,6 +3,7 @@ shellEmulator: true
 allowBuilds:
   '@parcel/watcher': false
   esbuild: false
+  workerd: true
 
 # minimumReleaseAge: 4320 # 3 days
 trustPolicy: no-downgrade
