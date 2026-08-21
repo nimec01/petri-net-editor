@@ -39,3 +39,10 @@ jobs:
           publish-script: pnpm changeset git-tag
           pr-title: Release package(s)
           commit-message: release package(s)
+
+  deploy:
+    name: Deploy to Production
+    needs: release
+    if: ${{ needs.release.outputs.publishedPackages != '' && needs.release.outputs.publishedPackages != '[]' }}
+    uses: ./.github/workflows/deploy-production.yml
+    secrets: inherit
