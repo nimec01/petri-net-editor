@@ -9,4 +9,5 @@ allowBuilds:
 trustPolicy: no-downgrade
 trustPolicyExclude:
   - semver@6.3.1
+  - cytoscape@3.34.1
 blockExoticSubdeps: true
