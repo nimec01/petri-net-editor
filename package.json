@@ -44,10 +44,10 @@
   "dependencies": {
     "@tailwindcss/vite": "4.3.3",
     "@types/katex": "0.16.8",
-    "cytoscape": "3.34.0",
+    "cytoscape": "3.34.1",
     "cytoscape-dagre": "4.0.0",
     "dagre": "0.8.5",
-    "daisyui": "5.7.18",
+    "daisyui": "5.7.20",
     "fflate": "0.8.3",
     "katex": "0.18.4",
     "nuxt": "4.5.2",
@@ -57,15 +57,15 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "9.3.0",
-    "@changesets/cli": "3.0.0",
-    "@iconify/json": "2.2.517",
+    "@changesets/cli": "3.0.1",
+    "@iconify/json": "2.2.518",
     "@playwright/test": "1.62.1",
     "@types/node": "26.2.0",
     "eslint": "10.8.1",
     "typescript": "6.0.3",
     "unplugin-icons": "23.0.1",
     "unplugin-vue-components": "32.1.0",
-    "vitest": "4.1.10",
+    "vitest": "4.1.11",
     "vue-tsc": "3.3.10",
     "wrangler": "4.125.0"
   }
