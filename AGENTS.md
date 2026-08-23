@@ -49,6 +49,7 @@ CI runs build first — `pnpm typecheck` depends on `.nuxt/` output from build o
 ## Changesets
 
 - Add a changeset for each change using `pnpm changeset`. Follow the prompt to choose a version bump (patch for fixes, minor for features, major for breaking changes) and describe the change.
+- A changeset is not required if a change only affects development-related concerns (e.g. tooling, CI, docs, dev dependencies).
 - Changesets live in `.changeset/` and are consumed by `pnpm changeset version` at release time.
 
 ## Do not modify tests
