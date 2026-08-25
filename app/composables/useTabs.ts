@@ -63,13 +63,21 @@ export function useTabs() {
     if (!source)
       return;
     const state: PetriNetState = source.petriNet.exportToJson();
-    const newTab = createTab();
+    const newTab = createTab(source.name);
     newTab.petriNet.importFromJson(state);
     const idx = tabs.value.findIndex(t => t.id === id);
     const newTabs = [...tabs.value];
     newTabs.splice(idx + 1, 0, newTab);
     tabs.value = newTabs;
     activeTabId.value = newTab.id;
+  }
+
+  function renameTab(id: string, name: string) {
+    const tab = tabs.value.find(t => t.id === id);
+    if (!tab)
+      return;
+    const renamed = { ...tab, name };
+    tabs.value = tabs.value.map(t => t.id === id ? renamed : t);
   }
 
   function switchTab(id: string) {
@@ -83,6 +91,7 @@ export function useTabs() {
     addTab,
     closeTab,
     duplicateTab,
+    renameTab,
     switchTab,
   };
 }

@@ -18,7 +18,7 @@ import reachabilityGraphExtension from '~/extensions/reachability-graph';
 import safenessExtension from '~/extensions/safeness';
 import { version } from '../../package.json';
 
-const { tabs, activeTabId, activeTab, addTab, closeTab, duplicateTab, switchTab } = useTabs();
+const { tabs, activeTabId, activeTab, addTab, closeTab, duplicateTab, renameTab, switchTab } = useTabs();
 
 for (const tab of tabs.value) {
   tab.extensions.register(mathNotationExtension);
@@ -35,7 +35,14 @@ const releaseUrl = `${githubUrl}/releases`;
 
 const exportModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
 const importModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
+const renameModal = shallowRef<{ open: (id: string, name: string) => void; close: () => void } | null>(null);
 const linkCopied = ref(false);
+
+if (import.meta.client) {
+  watch(() => activeTab.value.name, (name) => {
+    document.title = `${name} — Petri Net Editor`;
+  }, { immediate: true });
+}
 
 const placeLabels = computed(() => {
   const labels: Record<string, string> = {};
@@ -58,6 +65,9 @@ function handleImport() {
 
 function handleImportData(state: PetriNetState) {
   activeTab.value.petriNet.importFromJson(state);
+  if (state.title) {
+    renameTab(activeTab.value.id, state.title);
+  }
 }
 
 function setMode(m: EditorMode) {
@@ -213,6 +223,7 @@ onBeforeUnmount(() => {
       @close="closeTab"
       @add="addTab"
       @duplicate="duplicateTab"
+      @rename="(id, name) => renameModal?.open(id, name)"
     />
 
     <ClientOnly>
@@ -272,12 +283,13 @@ onBeforeUnmount(() => {
       </EditorExtensionDrawer>
     </ClientOnly>
 
-    <EditorExportModal ref="exportModal" :json="() => JSON.stringify(activeTab.petriNet.exportToJson(), null, 2)" />
+    <EditorExportModal ref="exportModal" :json="() => JSON.stringify({ ...activeTab.petriNet.exportToJson(), title: activeTab.name }, null, 2)" />
     <EditorImportModal ref="importModal" @import="handleImportData" />
     <EditorExtensionModal
       :extension="activeTab.extensions.activeExtension.value"
       :result="activeTab.extensions.resultComponent.value"
       @close="activeTab.extensions.closeExtension()"
     />
+    <EditorRenameModal ref="renameModal" @rename="(name) => renameTab(activeTab.id, name)" />
   </div>
 </template>

@@ -14,6 +14,7 @@ const emit = defineEmits<{
   close: [id: string];
   add: [];
   duplicate: [id: string];
+  rename: [id: string, name: string];
 }>();
 </script>
 
@@ -29,7 +30,7 @@ const emit = defineEmits<{
         : 'text-base-content/60 hover:text-base-content hover:bg-base-100/50'"
       @click="emit('switch', tab.id)"
     >
-      <span>{{ tab.name }}</span>
+      <span @dblclick.stop="emit('rename', tab.id, tab.name)">{{ tab.name }}</span>
       <button
         class="btn btn-ghost btn-xs p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
         title="Duplicate tab"
