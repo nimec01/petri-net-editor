@@ -174,6 +174,11 @@ export function usePetriNet() {
   }
 
   function initCy(container: HTMLElement): Core {
+    if (cy.value) {
+      cy.value.mount(container);
+      return cy.value;
+    }
+
     const instance = cytoscape({
       container,
       style: petriNetStylesheet,
