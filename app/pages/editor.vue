@@ -18,48 +18,28 @@ import reachabilityGraphExtension from '~/extensions/reachability-graph';
 import safenessExtension from '~/extensions/safeness';
 import { version } from '../../package.json';
 
-const petriNet = usePetriNet();
-provide('petriNet', petriNet);
+const { tabs, activeTabId, activeTab, addTab, closeTab, duplicateTab, switchTab } = useTabs();
+
+for (const tab of tabs.value) {
+  tab.extensions.register(mathNotationExtension);
+  tab.extensions.register(reachabilityGraphExtension);
+  tab.extensions.register(reachabilityExtension);
+  tab.extensions.register(boundednessExtension);
+  tab.extensions.register(livenessExtension);
+  tab.extensions.register(deadlockExtension);
+  tab.extensions.register(safenessExtension);
+}
 
 const githubUrl = 'https://github.com/nimec01/petri-net-editor';
 const releaseUrl = `${githubUrl}/releases`;
-
-const mode = petriNet.mode;
-const selectedElement = petriNet.selectedElement;
-const undoStack = petriNet.undoStack;
-const redoStack = petriNet.redoStack;
-const firingHistory = petriNet.firingHistory;
-const autoFiring = petriNet.autoFiring;
-const autoFireSpeed = petriNet.autoFireSpeed;
-const isNetEmpty = petriNet.isNetEmpty;
-const layoutType = petriNet.layoutType;
 
 const exportModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
 const importModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
 const linkCopied = ref(false);
 
-const {
-  extensions: extensionList,
-  drawerOpen: extensionDrawerOpen,
-  activeExtension,
-  resultComponent,
-  openExtension,
-  closeExtension,
-  toggleDrawer: toggleExtensionDrawer,
-  register,
-} = useExtensions();
-
-register(mathNotationExtension);
-register(reachabilityGraphExtension);
-register(reachabilityExtension);
-register(boundednessExtension);
-register(livenessExtension);
-register(deadlockExtension);
-register(safenessExtension);
-
 const placeLabels = computed(() => {
   const labels: Record<string, string> = {};
-  const pn = petriNet.petriNet.value;
+  const pn = activeTab.value.petriNet.petriNet.value;
   if (!pn)
     return labels;
   for (const p of pn.getPlaces()) {
@@ -77,31 +57,31 @@ function handleImport() {
 }
 
 function handleImportData(state: PetriNetState) {
-  petriNet.importFromJson(state);
+  activeTab.value.petriNet.importFromJson(state);
 }
 
 function setMode(m: EditorMode) {
-  mode.value = m;
+  activeTab.value.petriNet.mode.value = m;
 }
 
 function handleClearNet() {
   // eslint-disable-next-line no-alert
   if (!confirm('Are you sure you want to clear the entire Petri net?'))
     return;
-  petriNet.clearNet();
+  activeTab.value.petriNet.clearNet();
 }
 
 function handleExtensionSelect(id: string) {
-  const net = petriNet.petriNet.value;
-  const cy = petriNet.cy.value;
+  const net = activeTab.value.petriNet.petriNet.value;
+  const cy = activeTab.value.petriNet.cy.value;
   if (!net || !cy)
     return;
   const ctx: ExtensionContext = { net, cy };
-  openExtension(id, ctx);
+  activeTab.value.extensions.openExtension(id, ctx);
 }
 
 async function handleShareLink() {
-  const url = petriNet.shareLink();
+  const url = activeTab.value.petriNet.shareLink();
   await navigator.clipboard.writeText(url);
   linkCopied.value = true;
   setTimeout(() => {
@@ -110,27 +90,29 @@ async function handleShareLink() {
 }
 
 function handleBeforeUnload(e: BeforeUnloadEvent) {
-  if (!isNetEmpty.value) {
+  const hasContent = tabs.value.some(t => !t.petriNet.isNetEmpty.value);
+  if (hasContent) {
     e.preventDefault();
   }
 }
 
 onMounted(() => {
   if (import.meta.dev) {
-    window.__PETRI_NET_DEBUG__ = petriNet;
+    window.__PETRI_NET_DEBUG__ = activeTab.value.petriNet;
   }
+
   window.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
       e.preventDefault();
-      petriNet.undo();
+      activeTab.value.petriNet.undo();
     }
     if (e.ctrlKey && e.key === 'z' && e.shiftKey) {
       e.preventDefault();
-      petriNet.redo();
+      activeTab.value.petriNet.redo();
     }
     if (e.ctrlKey && e.key === 'y') {
       e.preventDefault();
-      petriNet.redo();
+      activeTab.value.petriNet.redo();
     }
   });
   window.addEventListener('beforeunload', handleBeforeUnload);
@@ -162,9 +144,9 @@ onBeforeUnmount(() => {
           <div class="tooltip tooltip-bottom" data-tip="Undo (Ctrl+Z)">
             <button
               class="btn btn-sm join-item"
-              :disabled="undoStack.length === 0"
+              :disabled="activeTab.petriNet.undoStack.value.length === 0"
               data-testid="undo"
-              @click="petriNet.undo()"
+              @click="activeTab.petriNet.undo()"
             >
               <IconUndo />
             </button>
@@ -172,9 +154,9 @@ onBeforeUnmount(() => {
           <div class="tooltip tooltip-bottom" data-tip="Redo (Ctrl+Shift+Z)">
             <button
               class="btn btn-sm join-item"
-              :disabled="redoStack.length === 0"
+              :disabled="activeTab.petriNet.redoStack.value.length === 0"
               data-testid="redo"
-              @click="petriNet.redo()"
+              @click="activeTab.petriNet.redo()"
             >
               <IconRedo />
             </button>
@@ -186,7 +168,7 @@ onBeforeUnmount(() => {
           <div class="tooltip tooltip-bottom" data-tip="Clear net">
             <button
               class="btn btn-sm btn-error join-item"
-              :disabled="isNetEmpty"
+              :disabled="activeTab.petriNet.isNetEmpty.value"
               data-testid="clear-net"
               @click="handleClearNet"
             >
@@ -199,7 +181,7 @@ onBeforeUnmount(() => {
           <div class="tooltip tooltip-bottom" data-tip="Copy shareable link">
             <button
               class="btn btn-sm join-item"
-              :disabled="isNetEmpty"
+              :disabled="activeTab.petriNet.isNetEmpty.value"
               data-testid="share"
               @click="handleShareLink"
             >
@@ -224,65 +206,78 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
+    <EditorTabsBar
+      :tabs="tabs"
+      :active-tab-id="activeTabId"
+      @switch="switchTab"
+      @close="closeTab"
+      @add="addTab"
+      @duplicate="duplicateTab"
+    />
+
     <ClientOnly>
       <EditorExtensionDrawer
-        :open="extensionDrawerOpen"
-        :extensions="extensionList"
+        :open="activeTab.extensions.drawerOpen.value"
+        :extensions="activeTab.extensions.extensions.value"
         @select="handleExtensionSelect"
-        @close="extensionDrawerOpen = false"
+        @close="activeTab.extensions.drawerOpen.value = false"
       >
         <div class="h-full relative overflow-hidden">
-          <EditorCanvas />
+          <template v-for="(tab, index) in tabs" :key="tab.id">
+            <div v-show="tab.id === activeTabId" class="absolute inset-0">
+              <EditorCanvas :petri-net="tab.petriNet" :load-from-url="index === 0" />
+            </div>
+          </template>
 
           <div class="absolute top-4 left-1/2 -translate-x-1/2 z-10">
             <EditorToolbar
-              :active-mode="mode"
-              :current-layout="layoutType"
-              :extensions-open="extensionDrawerOpen"
+              :active-mode="activeTab.petriNet.mode.value"
+              :current-layout="activeTab.petriNet.layoutType.value"
+              :extensions-open="activeTab.extensions.drawerOpen.value"
               @update:active-mode="setMode"
-              @zoom-in="petriNet.zoomIn()"
-              @zoom-out="petriNet.zoomOut()"
-              @zoom-to-fit="petriNet.zoomToFit()"
-              @apply-layout="(type) => petriNet.applyLayout(type)"
-              @toggle-extensions="toggleExtensionDrawer"
+              @zoom-in="activeTab.petriNet.zoomIn()"
+              @zoom-out="activeTab.petriNet.zoomOut()"
+              @zoom-to-fit="activeTab.petriNet.zoomToFit()"
+              @apply-layout="(type) => activeTab.petriNet.applyLayout(type)"
+              @toggle-extensions="activeTab.extensions.toggleDrawer()"
             />
           </div>
 
           <div class="absolute top-4 right-4 z-10">
             <EditorPropertiesPanel
-              :element="selectedElement"
-              @update-label="(id, label) => petriNet.setLabel(id, label)"
-              @update-tokens="(id, tokens) => petriNet.setTokens(id, tokens)"
-              @update-weight="(id, weight) => petriNet.setWeight(id, weight)"
-              @delete="(id) => petriNet.deleteElement(id)"
-              @close="petriNet.closeProperties()"
+              :element="activeTab.petriNet.selectedElement.value"
+              @update-label="(id, label) => activeTab.petriNet.setLabel(id, label)"
+              @update-tokens="(id, tokens) => activeTab.petriNet.setTokens(id, tokens)"
+              @update-weight="(id, weight) => activeTab.petriNet.setWeight(id, weight)"
+              @delete="(id) => activeTab.petriNet.deleteElement(id)"
+              @close="activeTab.petriNet.closeProperties()"
             />
           </div>
 
-          <div v-if="mode === 'fire'" class="absolute top-4 left-4 z-10">
+          <div v-if="activeTab.petriNet.mode.value === 'fire'" class="absolute top-4 left-4 z-10">
             <EditorFireHistory
-              :history="firingHistory"
+              :history="activeTab.petriNet.firingHistory.value"
               :place-labels="placeLabels"
-              :auto-firing="autoFiring"
-              :auto-fire-speed="autoFireSpeed"
-              @clear="petriNet.clearHistory()"
-              @revert="petriNet.revertLastFiring()"
-              @jump="(id) => petriNet.jumpToState(id)"
-              @toggle-auto-fire="petriNet.toggleAutoFire()"
-              @auto-fire-n="(n) => petriNet.autoFireN(n)"
-              @update:auto-fire-speed="(s) => petriNet.setAutoFireSpeed(s)"
+              :auto-firing="activeTab.petriNet.autoFiring.value"
+              :auto-fire-speed="activeTab.petriNet.autoFireSpeed.value"
+              @clear="activeTab.petriNet.clearHistory()"
+              @revert="activeTab.petriNet.revertLastFiring()"
+              @jump="(id) => activeTab.petriNet.jumpToState(id)"
+              @toggle-auto-fire="activeTab.petriNet.toggleAutoFire()"
+              @auto-fire-n="(n) => activeTab.petriNet.autoFireN(n)"
+              @update:auto-fire-speed="(s) => activeTab.petriNet.setAutoFireSpeed(s)"
             />
           </div>
         </div>
       </EditorExtensionDrawer>
     </ClientOnly>
 
-    <EditorExportModal ref="exportModal" :json="() => JSON.stringify(petriNet.exportToJson(), null, 2)" />
+    <EditorExportModal ref="exportModal" :json="() => JSON.stringify(activeTab.petriNet.exportToJson(), null, 2)" />
     <EditorImportModal ref="importModal" @import="handleImportData" />
     <EditorExtensionModal
-      :extension="activeExtension"
-      :result="resultComponent"
-      @close="closeExtension"
+      :extension="activeTab.extensions.activeExtension.value"
+      :result="activeTab.extensions.resultComponent.value"
+      @close="activeTab.extensions.closeExtension()"
     />
   </div>
 </template>

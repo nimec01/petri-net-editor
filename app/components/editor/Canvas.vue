@@ -1,18 +1,30 @@
 <script setup lang="ts">
-const petriNet = inject<ReturnType<typeof usePetriNet>>('petriNet')!;
+const props = withDefaults(defineProps<{
+  petriNet: ReturnType<typeof usePetriNet>;
+  loadFromUrl?: boolean;
+}>(), {
+  loadFromUrl: false,
+});
+
 const container = ref<HTMLElement | null>(null);
-const mode = petriNet.mode;
+const mode = props.petriNet.mode;
 
 onMounted(() => {
   if (!container.value)
     return;
-  petriNet.initCy(container.value);
-  petriNet.loadFromUrl();
+  props.petriNet.initCy(container.value);
+  if (props.loadFromUrl) {
+    props.petriNet.loadFromUrl();
+  }
 
+  let initialFit = true;
   const ro = new ResizeObserver(() => {
-    if (petriNet.cy.value) {
-      petriNet.cy.value.resize();
-      petriNet.cy.value.fit(undefined, 50);
+    if (props.petriNet.cy.value) {
+      props.petriNet.cy.value.resize();
+      if (initialFit) {
+        props.petriNet.cy.value.fit(undefined, 50);
+        initialFit = false;
+      }
     }
   });
   ro.observe(container.value);

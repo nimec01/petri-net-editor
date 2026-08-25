@@ -16,12 +16,6 @@ declare global {
   }
 }
 
-let nextId = 1;
-
-function generateId(): string {
-  return `el-${nextId++}`;
-}
-
 const petriNetStylesheet: cytoscape.StylesheetJson = [
   {
     selector: 'node.place-wrapper',
@@ -128,8 +122,15 @@ const petriNetStylesheet: cytoscape.StylesheetJson = [
 ];
 
 export function usePetriNet() {
+  let nextId = 1;
+
+  function generateId(): string {
+    return `el-${nextId++}`;
+  }
+
   const cy = shallowRef<Core | null>(null);
   const petriNet = shallowRef<IPetriNet | null>(null);
+  let pendingState: PetriNetState | null = null;
   const mode = ref<EditorMode>('select');
   const selectedElement = ref<PetriNetElementData | null>(null);
   const arcSourceId = ref<string | null>(null);
@@ -241,6 +242,12 @@ export function usePetriNet() {
 
     cy.value = instance;
     petriNet.value = new CytoscapePetriNet(instance);
+
+    if (pendingState) {
+      importFromJson(pendingState);
+      pendingState = null;
+    }
+
     return instance;
   }
 
@@ -734,8 +741,10 @@ export function usePetriNet() {
   }
 
   function importFromJson(state: PetriNetState) {
-    if (!cy.value)
+    if (!cy.value) {
+      pendingState = state;
       return;
+    }
 
     const formatVersion = state.formatVersion ?? 0;
     if (formatVersion > FORMAT_VERSION) {
