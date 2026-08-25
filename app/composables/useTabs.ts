@@ -1,32 +1,66 @@
 import type { PetriNetState } from '~/types/petri-net';
 
-export interface Tab {
+export type TabType = 'petri-net' | 'reachability-graph';
+
+export interface PetriNetTab {
   id: string;
   name: string;
+  type: 'petri-net';
   petriNet: ReturnType<typeof usePetriNet>;
   extensions: ReturnType<typeof useExtensions>;
 }
 
+export interface ReachabilityGraphTab {
+  id: string;
+  name: string;
+  type: 'reachability-graph';
+  sourceTabId: string;
+  petriNetState: PetriNetState;
+}
+
+export type Tab = PetriNetTab | ReachabilityGraphTab;
+
 let tabIdCounter = 0;
 
-function createTab(name?: string): Tab {
+function createPetriNetTab(name?: string): PetriNetTab {
   const id = `tab-${++tabIdCounter}`;
   return {
     id,
     name: name ?? `Tab ${tabIdCounter}`,
+    type: 'petri-net',
     petriNet: usePetriNet(),
     extensions: useExtensions(),
   };
 }
 
+function createReachabilityGraphTab(sourceTab: PetriNetTab): ReachabilityGraphTab {
+  const id = `tab-${++tabIdCounter}`;
+  return {
+    id,
+    name: `${sourceTab.name} — Reachability Graph`,
+    type: 'reachability-graph',
+    sourceTabId: sourceTab.id,
+    petriNetState: sourceTab.petriNet.exportToJson(),
+  };
+}
+
 export function useTabs() {
-  const tabs = shallowRef<Tab[]>([createTab('Tab 1')]);
+  const tabs = shallowRef<Tab[]>([createPetriNetTab('Tab 1')]);
   const activeTabId = ref(tabs.value[0]!.id);
 
   const activeTab = computed(() => tabs.value.find(t => t.id === activeTabId.value) ?? tabs.value[0]!);
 
   function addTab() {
-    const tab = createTab();
+    const tab = createPetriNetTab();
+    tabs.value = [...tabs.value, tab];
+    activeTabId.value = tab.id;
+  }
+
+  function openReachabilityGraph(sourceTabId: string) {
+    const source = tabs.value.find(t => t.id === sourceTabId);
+    if (!source || source.type !== 'petri-net')
+      return;
+    const tab = createReachabilityGraphTab(source);
     tabs.value = [...tabs.value, tab];
     activeTabId.value = tab.id;
   }
@@ -39,7 +73,10 @@ export function useTabs() {
     const idx = tabs.value.findIndex(t => t.id === id);
     if (idx === -1)
       return;
-    tabs.value[idx]!.petriNet.destroy();
+    const tab = tabs.value[idx]!;
+    if (tab.type === 'petri-net') {
+      tab.petriNet.destroy();
+    }
     const newTabs = tabs.value.filter(t => t.id !== id);
     tabs.value = newTabs;
     if (activeTabId.value === id) {
@@ -50,7 +87,7 @@ export function useTabs() {
 
   function resetTab(id: string) {
     const tab = tabs.value.find(t => t.id === id);
-    if (!tab)
+    if (!tab || tab.type !== 'petri-net')
       return;
     tab.petriNet.destroy();
     tab.petriNet = usePetriNet();
@@ -60,10 +97,10 @@ export function useTabs() {
 
   function duplicateTab(id: string) {
     const source = tabs.value.find(t => t.id === id);
-    if (!source)
+    if (!source || source.type !== 'petri-net')
       return;
     const state: PetriNetState = source.petriNet.exportToJson();
-    const newTab = createTab(source.name);
+    const newTab = createPetriNetTab(source.name);
     newTab.petriNet.importFromJson(state);
     const idx = tabs.value.findIndex(t => t.id === id);
     const newTabs = [...tabs.value];
@@ -89,6 +126,7 @@ export function useTabs() {
     activeTabId,
     activeTab,
     addTab,
+    openReachabilityGraph,
     closeTab,
     duplicateTab,
     renameTab,

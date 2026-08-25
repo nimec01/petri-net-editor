@@ -2,6 +2,7 @@
 import type { Tab } from '~/composables/useTabs';
 import IconCopy from '~icons/tabler/copy';
 import IconPlus from '~icons/tabler/plus';
+import IconShare2 from '~icons/tabler/share-2';
 import IconX from '~icons/tabler/x';
 
 defineProps<{
@@ -30,8 +31,10 @@ const emit = defineEmits<{
         : 'text-base-content/60 hover:text-base-content hover:bg-base-100/50'"
       @click="emit('switch', tab.id)"
     >
+      <IconShare2 v-if="tab.type === 'reachability-graph'" class="w-3 h-3 shrink-0" />
       <span @dblclick.stop="emit('rename', tab.id, tab.name)">{{ tab.name }}</span>
       <button
+        v-if="tab.type === 'petri-net'"
         class="btn btn-ghost btn-xs p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
         title="Duplicate tab"
         @click.stop="emit('duplicate', tab.id)"
