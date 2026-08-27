@@ -2,10 +2,13 @@
 import type { PetriNetExtension } from '~/types/extension';
 import IconX from '~icons/tabler/x';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   open: boolean;
   extensions: PetriNetExtension[];
-}>();
+  drawerId?: string;
+}>(), {
+  drawerId: 'extensions-drawer',
+});
 
 const emit = defineEmits<{
   select: [id: string];
@@ -24,7 +27,7 @@ const drawerChecked = computed({
 <template>
   <div class="drawer flex-1 min-h-0">
     <input
-      id="extensions-drawer"
+      :id="drawerId"
       v-model="drawerChecked"
       type="checkbox"
       class="drawer-toggle"
@@ -34,7 +37,7 @@ const drawerChecked = computed({
       <slot />
     </div>
     <div class="drawer-side z-30">
-      <label for="extensions-drawer" aria-label="Close extensions" class="drawer-overlay" />
+      <label :for="drawerId" aria-label="Close extensions" class="drawer-overlay" />
       <div class="flex flex-col w-72 h-full bg-base-300 border-r border-base-300 shadow-lg">
         <div class="flex items-center justify-between px-4 py-3 border-b border-base-300">
           <h3 class="text-lg font-bold">
