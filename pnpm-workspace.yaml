@@ -11,3 +11,7 @@ trustPolicyExclude:
   - semver@6.3.1
   - cytoscape@3.34.1
 blockExoticSubdeps: true
+overrides:
+  brace-expansion@>=4.0.0 <5.0.8: ^5.0.8
+  brace-expansion@>=4.0.0 <5.0.9: ^5.0.9
+  nanoid@<3.3.18: ^3.3.18
