@@ -61,3 +61,7 @@ CI runs build first — `pnpm typecheck` depends on `.nuxt/` output from build o
 ## Environment
 
 - Nuxt MCP server is connected (`opencode.jsonc`) — available for Nuxt API/docs questions
+- Context7 MCP server is connected (`opencode.jsonc`) - available for up-to-date package documentation
+- GitHub MCP server is connected (`opencode.jsonc`) - available for GitHub platform features
+- There are also skills available: `daisyui`, `grill-with-docs`, `nuxt`, `tdd`, `web-design-guidelines`
+

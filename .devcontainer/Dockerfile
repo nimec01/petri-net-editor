@@ -1,5 +1,13 @@
-FROM mcr.microsoft.com/devcontainers/javascript-node:24-bookworm
+FROM ghcr.io/pnpm/pnpm:12
 
-USER node
+RUN pnpm runtime set node lts -g
 
-RUN pnpx playwright install --with-deps chromium
+RUN pnpm dlx playwright install --with-deps chromium
+
+RUN curl -fsSL https://opencode.ai/install | bash
+
+RUN apt update && apt install -y --no-install-recommends vim
+
+RUN chsh -s /bin/zsh
+
+ENV PATH=/root/.opencode/bin:$PATH
