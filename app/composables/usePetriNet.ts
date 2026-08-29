@@ -242,6 +242,58 @@ export function usePetriNet() {
     selectedElement.value = target ? buildElementData(target) : null;
   }
 
+  const panCleanups: Array<() => void> = [];
+
+  function setupMiddleMousePan(container: HTMLElement, instance: Core) {
+    let panning = false;
+    let startX = 0;
+    let startY = 0;
+    let startPanX = 0;
+    let startPanY = 0;
+
+    function onMouseDown(e: MouseEvent) {
+      if (e.button !== 1)
+        return;
+      panning = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      const pan = instance.pan();
+      startPanX = pan.x;
+      startPanY = pan.y;
+      e.preventDefault();
+      e.stopPropagation();
+      container.style.cursor = 'grabbing';
+    }
+
+    function onMouseMove(e: MouseEvent) {
+      if (!panning)
+        return;
+      const zoom = instance.zoom();
+      const dx = (e.clientX - startX) / zoom;
+      const dy = (e.clientY - startY) / zoom;
+      instance.pan({ x: startPanX + dx, y: startPanY + dy });
+      e.preventDefault();
+    }
+
+    function onMouseUp(e: MouseEvent) {
+      if (!panning)
+        return;
+      panning = false;
+      container.style.cursor = '';
+      e.preventDefault();
+    }
+
+    container.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+
+    panCleanups.push(() => {
+      container.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    });
+  }
+
   function initCy(container: HTMLElement): Core {
     if (cy.value) {
       cy.value.mount(container);
@@ -253,10 +305,17 @@ export function usePetriNet() {
       style: petriNetStylesheet,
       layout: { name: 'preset' },
       selectionType: 'single',
-      boxSelectionEnabled: false,
+      boxSelectionEnabled: mode.value === 'select',
+      userPanningEnabled: false,
       minZoom: 0.1,
       maxZoom: 5,
     });
+
+    watch(mode, (newMode) => {
+      instance.boxSelectionEnabled(newMode === 'select');
+    });
+
+    setupMiddleMousePan(container, instance);
 
     instance.on('select', (e: EventObject) => {
       if (e.target === instance) {
@@ -388,6 +447,11 @@ export function usePetriNet() {
     selectedElement.value = null;
   }
 
+  function makeWrapperNonSelectable(instance: cytoscape.Core, wrapperId: string) {
+    const wrapper = instance.getElementById(wrapperId);
+    wrapper.unselectify();
+  }
+
   function addPlace(x: number, y: number): string {
     const id = generateId();
     placeCount++;
@@ -399,6 +463,8 @@ export function usePetriNet() {
       position: { x, y },
       classes: 'place-wrapper',
     });
+    if (cy.value)
+      makeWrapperNonSelectable(cy.value, id);
     cy.value?.add({
       group: 'nodes',
       data: { id: innerId, parent: id, tokens: 0 },
@@ -464,6 +530,7 @@ export function usePetriNet() {
         position: { x: data.x ?? 0, y: data.y ?? 0 },
         classes: 'place-wrapper',
       });
+      makeWrapperNonSelectable(instance, data.id);
       instance.add({
         group: 'nodes',
         data: { id: `${data.id}-inner`, parent: data.id, tokens: data.tokens ?? 0 },
@@ -602,11 +669,13 @@ export function usePetriNet() {
           position: { x, y },
           classes: 'place-wrapper',
         });
+        makeWrapperNonSelectable(instance, newId);
         instance.add({
           group: 'nodes',
           data: { id: `${newId}-inner`, parent: newId, tokens: el.tokens ?? 0 },
           position: { x, y },
         });
+        pastedIds.push(`${newId}-inner`);
         batch.push({ id: newId, type: 'place', label: el.label, tokens: el.tokens ?? 0, x, y });
       } else {
         transitionCount++;
@@ -990,6 +1059,7 @@ export function usePetriNet() {
           position: { x: el.x ?? 0, y: el.y ?? 0 },
           classes: 'place-wrapper',
         });
+        makeWrapperNonSelectable(cy.value, el.id);
         cy.value.add({
           group: 'nodes',
           data: { id: innerId, parent: el.id, tokens: el.tokens ?? 0 },
@@ -1199,6 +1269,7 @@ export function usePetriNet() {
   }
 
   function destroy() {
+    panCleanups.splice(0).forEach(cleanup => cleanup());
     cy.value?.destroy();
     cy.value = null;
   }

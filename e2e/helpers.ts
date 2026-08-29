@@ -195,9 +195,9 @@ export async function dragBackground(page: Page, deltaX: number, deltaY: number)
   const startX = box.x + point.x;
   const startY = box.y + point.y;
   await page.mouse.move(startX, startY);
-  await page.mouse.down();
+  await page.mouse.down({ button: 'middle' });
   await page.mouse.move(startX + deltaX, startY + deltaY, { steps: 8 });
-  await page.mouse.up();
+  await page.mouse.up({ button: 'middle' });
 }
 
 export async function openExtension(page: Page, name: string): Promise<void> {
