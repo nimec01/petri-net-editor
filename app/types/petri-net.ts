@@ -25,6 +25,7 @@ export interface PetriNetState {
 export interface Command {
   type: 'add' | 'delete' | 'modify';
   elementData: PetriNetElementData;
+  elements?: PetriNetElementData[];
   previousData?: PetriNetElementData;
 }
 
