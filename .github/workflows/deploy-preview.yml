@@ -24,6 +24,7 @@ jobs:
           command: .deploy-preview
           reaction: eyes
           allowed_contexts: pull_request
+          skip_reviews: true
 
       - name: Get PR info
         if: ${{ steps.command.outputs.continue == 'true' }}
