@@ -242,9 +242,11 @@ export function usePetriNet() {
     selectedElement.value = target ? buildElementData(target) : null;
   }
 
-  const panCleanups: Array<() => void> = [];
+  const interactionCleanups: Array<() => void> = [];
 
-  function setupMiddleMousePan(container: HTMLElement, instance: Core) {
+  const WHEEL_ZOOM_SENSITIVITY = 1000;
+
+  function setupCustomInteractions(container: HTMLElement, instance: Core) {
     let panning = false;
     let startX = 0;
     let startY = 0;
@@ -283,14 +285,32 @@ export function usePetriNet() {
       e.preventDefault();
     }
 
+    function onWheel(e: WheelEvent) {
+      if (e.deltaY === 0)
+        return;
+      e.preventDefault();
+      const deltaY = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
+      const rect = container.getBoundingClientRect();
+      const newZoom = Math.min(
+        instance.maxZoom(),
+        Math.max(instance.minZoom(), instance.zoom() * 10 ** (deltaY / -WHEEL_ZOOM_SENSITIVITY)),
+      );
+      instance.zoom({
+        level: newZoom,
+        renderedPosition: { x: e.clientX - rect.left, y: e.clientY - rect.top },
+      });
+    }
+
     container.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+    container.addEventListener('wheel', onWheel, { passive: false });
 
-    panCleanups.push(() => {
+    interactionCleanups.push(() => {
       container.removeEventListener('mousedown', onMouseDown);
       window.removeEventListener('mousemove', onMouseMove);
       window.removeEventListener('mouseup', onMouseUp);
+      container.removeEventListener('wheel', onWheel);
     });
   }
 
@@ -315,7 +335,7 @@ export function usePetriNet() {
       instance.boxSelectionEnabled(newMode === 'select');
     });
 
-    setupMiddleMousePan(container, instance);
+    setupCustomInteractions(container, instance);
 
     instance.on('select', (e: EventObject) => {
       if (e.target === instance) {
@@ -1269,7 +1289,7 @@ export function usePetriNet() {
   }
 
   function destroy() {
-    panCleanups.splice(0).forEach(cleanup => cleanup());
+    interactionCleanups.splice(0).forEach(cleanup => cleanup());
     cy.value?.destroy();
     cy.value = null;
   }
