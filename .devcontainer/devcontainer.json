@@ -3,19 +3,29 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
+  "mounts": [
+    "source=${localEnv:HOME}/.config/opencode/github_token.txt,target=/root/.config/opencode/github_token.txt,type=bind,readonly",
+    "source=${localEnv:HOME}/.gitconfig.github,target=/root/.gitconfig.github,type=bind,readonly"
+  ],
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "installOhMyZsh": true,
       "configureZshAsDefaultShell": true
     },
-    "ghcr.io/w3cj/devcontainer-features/firewall:latest": {
+    "ghcr.io/nimec01/dev/devcontainer-features/firewall:latest": {
       "verbose": true,
-      "hosts": "172.65.90.20,172.65.90.21,172.65.90.22,172.65.90.23,opencode.ai,nuxt.com,deb.debian.org",
+      "hosts": "nuxt.com",
       "githubIps": true,
       "githubDomains": true,
       "npmRegistry": true,
       "context7Mcp": true,
-      "vscodeMarketplace": true
+      "vscodeMarketplace": true,
+      "debianPackages": true,
+      "opencode": true,
+      "nodejs": true
+    },
+    "ghcr.io/nimec01/dev/devcontainer-features/zsh-aliases:latest": {
+      "aliases": "npx=pnpm dlx"
     }
   },
   "customizations": {
