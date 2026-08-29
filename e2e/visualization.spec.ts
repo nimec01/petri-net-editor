@@ -145,7 +145,7 @@ test.describe('visualization', () => {
       }, id);
     };
 
-    await selectNode(await placeId(page, 'P1'));
+    await selectNode(`${await placeId(page, 'P1')}-inner`);
     await expect(page.getByTestId('prop-label')).toHaveValue('P1');
     await expect(page.getByTestId('prop-tokens')).toHaveValue('2');
 

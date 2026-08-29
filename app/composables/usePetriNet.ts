@@ -10,6 +10,10 @@ import { decodeState, encodeState } from '~/utils/share';
 
 cytoscape.use(dagre);
 
+const PASTE_OFFSET = 40;
+const clipboard = shallowRef<PetriNetState | null>(null);
+let pasteCounter = 0;
+
 declare global {
   interface Window {
     __PETRI_NET_DEBUG__?: ReturnType<typeof usePetriNet>;
@@ -173,6 +177,143 @@ export function usePetriNet() {
     return nodeId;
   }
 
+  function buildElementData(ele: cytoscape.SingularElementArgument): PetriNetElementData {
+    if (ele.isEdge()) {
+      const sourceId = ele.data('source');
+      const targetId = ele.data('target');
+      const sourceLabel = resolveNodeLabel(sourceId);
+      const targetLabel = resolveNodeLabel(targetId);
+      return {
+        id: ele.id(),
+        type: 'arc',
+        label: `${sourceLabel} → ${targetLabel}`,
+        weight: ele.data('weight') || 1,
+        source: sourceLabel,
+        target: targetLabel,
+      };
+    }
+
+    const isPlace = ele.data('type') === 'place';
+    const parent = ele.parent().first();
+    const wrapperId = isPlace ? ele.id() : (parent.length > 0 && parent.data('type') === 'place' ? parent.id() : ele.id());
+    const wrapperEle = isPlace ? ele : (parent.length > 0 ? parent : ele);
+    const innerNode = isPlace ? ele.children().first() : ele;
+    return {
+      id: wrapperId,
+      type: isPlace ? 'place' : 'transition',
+      label: wrapperEle.data('label') || '',
+      tokens: innerNode.data('tokens'),
+    };
+  }
+
+  function syncSelectionPanel() {
+    const instance = cy.value;
+    if (!instance) {
+      selectedElement.value = null;
+      return;
+    }
+    const selected = instance.elements(':selected');
+    const seen = new Set<string>();
+    const topLevel: cytoscape.SingularElementArgument[] = [];
+    selected.forEach((ele) => {
+      if (ele.isEdge()) {
+        if (seen.has(ele.id()))
+          return;
+        seen.add(ele.id());
+        topLevel.push(ele);
+        return;
+      }
+      const node = ele as cytoscape.NodeSingular;
+      let display = node;
+      if (node.parent().length > 0) {
+        const parent = node.parent().first();
+        if (parent.data('type') === 'place') {
+          display = parent;
+        } else {
+          return;
+        }
+      }
+      if (seen.has(display.id()))
+        return;
+      seen.add(display.id());
+      topLevel.push(display);
+    });
+    const target = topLevel.length > 0 ? topLevel[topLevel.length - 1]! : null;
+    selectedElement.value = target ? buildElementData(target) : null;
+  }
+
+  const interactionCleanups: Array<() => void> = [];
+
+  const WHEEL_ZOOM_SENSITIVITY = 1000;
+
+  function setupCustomInteractions(container: HTMLElement, instance: Core) {
+    let panning = false;
+    let startX = 0;
+    let startY = 0;
+    let startPanX = 0;
+    let startPanY = 0;
+
+    function onMouseDown(e: MouseEvent) {
+      if (e.button !== 1)
+        return;
+      panning = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      const pan = instance.pan();
+      startPanX = pan.x;
+      startPanY = pan.y;
+      e.preventDefault();
+      e.stopPropagation();
+      container.style.cursor = 'grabbing';
+    }
+
+    function onMouseMove(e: MouseEvent) {
+      if (!panning)
+        return;
+      const zoom = instance.zoom();
+      const dx = (e.clientX - startX) / zoom;
+      const dy = (e.clientY - startY) / zoom;
+      instance.pan({ x: startPanX + dx, y: startPanY + dy });
+      e.preventDefault();
+    }
+
+    function onMouseUp(e: MouseEvent) {
+      if (!panning)
+        return;
+      panning = false;
+      container.style.cursor = '';
+      e.preventDefault();
+    }
+
+    function onWheel(e: WheelEvent) {
+      if (e.deltaY === 0)
+        return;
+      e.preventDefault();
+      const deltaY = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
+      const rect = container.getBoundingClientRect();
+      const newZoom = Math.min(
+        instance.maxZoom(),
+        Math.max(instance.minZoom(), instance.zoom() * 10 ** (deltaY / -WHEEL_ZOOM_SENSITIVITY)),
+      );
+      instance.zoom({
+        level: newZoom,
+        renderedPosition: { x: e.clientX - rect.left, y: e.clientY - rect.top },
+      });
+    }
+
+    container.addEventListener('mousedown', onMouseDown);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+    container.addEventListener('wheel', onWheel, { passive: false });
+
+    interactionCleanups.push(() => {
+      container.removeEventListener('mousedown', onMouseDown);
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+      container.removeEventListener('wheel', onWheel);
+    });
+  }
+
   function initCy(container: HTMLElement): Core {
     if (cy.value) {
       cy.value.mount(container);
@@ -184,55 +325,32 @@ export function usePetriNet() {
       style: petriNetStylesheet,
       layout: { name: 'preset' },
       selectionType: 'single',
-      boxSelectionEnabled: false,
+      boxSelectionEnabled: mode.value === 'select',
+      userPanningEnabled: false,
       minZoom: 0.1,
       maxZoom: 5,
     });
 
+    watch(mode, (newMode) => {
+      instance.boxSelectionEnabled(newMode === 'select');
+    });
+
+    setupCustomInteractions(container, instance);
+
     instance.on('select', (e: EventObject) => {
       if (e.target === instance) {
         instance.elements().unselect();
-        selectedElement.value = null;
+        syncSelectionPanel();
         return;
       }
       if (mode.value !== 'select') {
         return;
       }
-      const ele = e.target;
-
-      if (ele.isEdge()) {
-        const sourceId = ele.data('source');
-        const targetId = ele.data('target');
-        const sourceLabel = resolveNodeLabel(sourceId);
-        const targetLabel = resolveNodeLabel(targetId);
-        selectedElement.value = {
-          id: ele.id(),
-          type: 'arc',
-          label: `${sourceLabel} → ${targetLabel}`,
-          weight: ele.data('weight') || 1,
-          source: sourceLabel,
-          target: targetLabel,
-        };
-        return;
-      }
-
-      const isWrapper = ele.data('type') === 'place';
-      const parent = ele.parent().first();
-      const wrapperId = isWrapper ? ele.id() : (parent.length > 0 && parent.data('type') === 'place' ? parent.id() : ele.id());
-      const wrapperEle = isWrapper ? ele : (parent.length > 0 ? parent : ele);
-      const innerNode = isWrapper ? ele.children().first() : ele;
-      selectedElement.value = {
-        id: wrapperId,
-        type: 'place',
-        label: wrapperEle.data('label') || '',
-        tokens: innerNode.data('tokens'),
-      };
+      syncSelectionPanel();
     });
 
-    instance.on('unselect', (e: EventObject) => {
-      if (e.target !== instance) {
-        selectedElement.value = null;
-      }
+    instance.on('unselect', () => {
+      syncSelectionPanel();
     });
 
     instance.on('tap', (e: EventObject) => {
@@ -349,6 +467,11 @@ export function usePetriNet() {
     selectedElement.value = null;
   }
 
+  function makeWrapperNonSelectable(instance: cytoscape.Core, wrapperId: string) {
+    const wrapper = instance.getElementById(wrapperId);
+    wrapper.unselectify();
+  }
+
   function addPlace(x: number, y: number): string {
     const id = generateId();
     placeCount++;
@@ -360,6 +483,8 @@ export function usePetriNet() {
       position: { x, y },
       classes: 'place-wrapper',
     });
+    if (cy.value)
+      makeWrapperNonSelectable(cy.value, id);
     cy.value?.add({
       group: 'nodes',
       data: { id: innerId, parent: id, tokens: 0 },
@@ -397,6 +522,225 @@ export function usePetriNet() {
     });
     elementCount.value++;
     return id;
+  }
+
+  function resolveArcEndpoint(endpointId: string | undefined): string | undefined {
+    if (!endpointId)
+      return endpointId;
+    const node = cy.value?.getElementById(endpointId);
+    if (node && node.length > 0 && node.data('type') === 'place' && node.children().length > 0) {
+      return `${endpointId}-inner`;
+    }
+    return endpointId;
+  }
+
+  function addElementFromData(data: PetriNetElementData) {
+    const instance = cy.value;
+    if (!instance)
+      return;
+    if (data.type === 'arc') {
+      instance.add({
+        group: 'edges',
+        data: { id: data.id, type: 'arc', source: resolveArcEndpoint(data.source), target: resolveArcEndpoint(data.target), weight: data.weight || 1 },
+      });
+    } else if (data.type === 'place') {
+      instance.add({
+        group: 'nodes',
+        data: { id: data.id, type: 'place', label: data.label },
+        position: { x: data.x ?? 0, y: data.y ?? 0 },
+        classes: 'place-wrapper',
+      });
+      makeWrapperNonSelectable(instance, data.id);
+      instance.add({
+        group: 'nodes',
+        data: { id: `${data.id}-inner`, parent: data.id, tokens: data.tokens ?? 0 },
+        position: { x: data.x ?? 0, y: data.y ?? 0 },
+      });
+    } else {
+      const nodeData: Record<string, unknown> = { id: data.id, type: data.type, label: data.label };
+      if (data.tokens !== undefined) {
+        nodeData.tokens = data.tokens;
+      }
+      instance.add({
+        group: 'nodes',
+        data: nodeData,
+        position: { x: data.x ?? 0, y: data.y ?? 0 },
+      });
+    }
+  }
+
+  function copySelection(): boolean {
+    const instance = cy.value;
+    if (!instance)
+      return false;
+
+    const selected = instance.elements(':selected');
+    const wrappers = new Map<string, cytoscape.NodeSingular>();
+    selected.filter(ele => ele.isNode()).forEach((ele) => {
+      const node = ele as cytoscape.NodeSingular;
+      if (node.parent().length > 0) {
+        const parent = node.parent().first();
+        if (parent.data('type') === 'place') {
+          wrappers.set(parent.id(), parent);
+        }
+      } else {
+        wrappers.set(node.id(), node);
+      }
+    });
+    if (wrappers.size === 0)
+      return false;
+
+    const innerToWrapper = new Map<string, string>();
+    const elements: PetriNetElementData[] = [];
+
+    wrappers.forEach((node) => {
+      if (node.data('type') === 'place') {
+        const inner = node.children().first();
+        if (inner.length > 0) {
+          innerToWrapper.set(inner.id(), node.id());
+        }
+        elements.push({
+          id: node.id(),
+          type: 'place',
+          label: node.data('label') || '',
+          tokens: inner.data('tokens') ?? 0,
+          x: node.position('x'),
+          y: node.position('y'),
+        });
+      } else {
+        elements.push({
+          id: node.id(),
+          type: 'transition',
+          label: node.data('label') || '',
+          x: node.position('x'),
+          y: node.position('y'),
+        });
+      }
+    });
+
+    const copyableIds = new Set(wrappers.keys());
+    selected.filter(ele => ele.isEdge()).forEach((edge) => {
+      const source = innerToWrapper.get(edge.data('source')) ?? edge.data('source');
+      const target = innerToWrapper.get(edge.data('target')) ?? edge.data('target');
+      if (!copyableIds.has(source) || !copyableIds.has(target))
+        return;
+      elements.push({
+        id: edge.id(),
+        type: 'arc',
+        label: '',
+        weight: edge.data('weight') || 1,
+        source,
+        target,
+      });
+    });
+
+    if (elements.length === 0)
+      return false;
+
+    clipboard.value = { elements };
+    pasteCounter = 0;
+    return true;
+  }
+
+  function pasteClipboard(): boolean {
+    const instance = cy.value;
+    const state = clipboard.value;
+    if (!instance || !state || state.elements.length === 0)
+      return false;
+
+    const copyable = state.elements.filter(el => el.type !== 'arc');
+    if (copyable.length === 0)
+      return false;
+
+    const pan = instance.pan();
+    const zoom = instance.zoom();
+    const centerX = (instance.width() / 2 - pan.x) / zoom + pasteCounter * PASTE_OFFSET;
+    const centerY = (instance.height() / 2 - pan.y) / zoom + pasteCounter * PASTE_OFFSET;
+
+    let minX = Number.POSITIVE_INFINITY;
+    let minY = Number.POSITIVE_INFINITY;
+    let maxX = Number.NEGATIVE_INFINITY;
+    let maxY = Number.NEGATIVE_INFINITY;
+    copyable.forEach((el) => {
+      minX = Math.min(minX, el.x ?? 0);
+      minY = Math.min(minY, el.y ?? 0);
+      maxX = Math.max(maxX, el.x ?? 0);
+      maxY = Math.max(maxY, el.y ?? 0);
+    });
+    const dx = centerX - (minX + maxX) / 2;
+    const dy = centerY - (minY + maxY) / 2;
+
+    const idMap = new Map<string, string>();
+    const pastedIds: string[] = [];
+    const batch: PetriNetElementData[] = [];
+
+    for (const el of state.elements) {
+      if (el.type === 'arc')
+        continue;
+      const newId = generateId();
+      idMap.set(el.id, newId);
+      const x = (el.x ?? 0) + dx;
+      const y = (el.y ?? 0) + dy;
+      if (el.type === 'place') {
+        placeCount++;
+        instance.add({
+          group: 'nodes',
+          data: { id: newId, type: 'place', label: el.label },
+          position: { x, y },
+          classes: 'place-wrapper',
+        });
+        makeWrapperNonSelectable(instance, newId);
+        instance.add({
+          group: 'nodes',
+          data: { id: `${newId}-inner`, parent: newId, tokens: el.tokens ?? 0 },
+          position: { x, y },
+        });
+        pastedIds.push(`${newId}-inner`);
+        batch.push({ id: newId, type: 'place', label: el.label, tokens: el.tokens ?? 0, x, y });
+      } else {
+        transitionCount++;
+        instance.add({
+          group: 'nodes',
+          data: { id: newId, type: 'transition', label: el.label },
+          position: { x, y },
+        });
+        batch.push({ id: newId, type: 'transition', label: el.label, x, y });
+      }
+      pastedIds.push(newId);
+    }
+
+    for (const el of state.elements) {
+      if (el.type !== 'arc')
+        continue;
+      const source = idMap.get(el.source ?? '') ?? el.source;
+      const target = idMap.get(el.target ?? '') ?? el.target;
+      if (!source || !target)
+        continue;
+      const newId = generateId();
+      const weight = el.weight || 1;
+      instance.add({
+        group: 'edges',
+        data: { id: newId, type: 'arc', source: resolveArcEndpoint(source), target: resolveArcEndpoint(target), weight },
+      });
+      batch.push({ id: newId, type: 'arc', label: '', weight, source, target });
+      pastedIds.push(newId);
+    }
+
+    if (pastedIds.length === 0)
+      return false;
+
+    instance.elements().unselect();
+    let pastedCollection = instance.collection();
+    for (const id of pastedIds) {
+      pastedCollection = pastedCollection.union(instance.getElementById(id));
+    }
+    pastedCollection.select();
+    syncSelectionPanel();
+
+    pushUndo({ type: 'add', elementData: batch[0]!, elements: batch });
+    pasteCounter++;
+    elementCount.value = instance.elements().length;
+    return true;
   }
 
   function deleteElement(id: string) {
@@ -521,36 +865,16 @@ export function usePetriNet() {
       return;
 
     if (cmd.type === 'add') {
-      cy.value.getElementById(cmd.elementData.id).remove();
-      if (selectedElement.value?.id === cmd.elementData.id) {
-        selectedElement.value = null;
+      const ids = (cmd.elements ?? [cmd.elementData]).map(el => el.id);
+      for (const id of ids) {
+        const ele = cy.value.getElementById(id);
+        if (ele.length > 0) {
+          ele.remove();
+        }
       }
+      syncSelectionPanel();
     } else if (cmd.type === 'delete') {
-      const data = cmd.elementData;
-      if (data.type === 'arc') {
-        cy.value.add({
-          group: 'edges',
-          data: { id: data.id, type: 'arc', source: data.source, target: data.target, weight: data.weight || 1 },
-        });
-      } else if (data.type === 'place') {
-        cy.value.add({
-          group: 'nodes',
-          data: { id: data.id, type: 'place', label: data.label },
-          position: { x: data.x ?? 0, y: data.y ?? 0 },
-          classes: 'place-wrapper',
-        });
-        cy.value.add({
-          group: 'nodes',
-          data: { id: `${data.id}-inner`, parent: data.id, tokens: data.tokens ?? 0 },
-          position: { x: data.x ?? 0, y: data.y ?? 0 },
-        });
-      } else {
-        cy.value.add({
-          group: 'nodes',
-          data: { id: data.id, type: data.type, label: data.label, tokens: data.tokens },
-          position: { x: data.x ?? 0, y: data.y ?? 0 },
-        });
-      }
+      addElementFromData(cmd.elementData);
     } else if (cmd.type === 'modify' && cmd.previousData) {
       const prev = cmd.previousData;
       const ele = cy.value.getElementById(prev.id);
@@ -595,36 +919,15 @@ export function usePetriNet() {
       return;
 
     if (cmd.type === 'add') {
-      const data = cmd.elementData;
-      if (data.type === 'arc') {
-        cy.value.add({
-          group: 'edges',
-          data: { id: data.id, type: 'arc', source: data.source, target: data.target, weight: data.weight || 1 },
-        });
-      } else if (data.type === 'place') {
-        cy.value.add({
-          group: 'nodes',
-          data: { id: data.id, type: 'place', label: data.label },
-          position: { x: data.x ?? 0, y: data.y ?? 0 },
-          classes: 'place-wrapper',
-        });
-        cy.value.add({
-          group: 'nodes',
-          data: { id: `${data.id}-inner`, parent: data.id, tokens: data.tokens ?? 0 },
-          position: { x: data.x ?? 0, y: data.y ?? 0 },
-        });
-      } else {
-        cy.value.add({
-          group: 'nodes',
-          data: { id: data.id, type: data.type, label: data.label, tokens: data.tokens },
-          position: { x: data.x ?? 0, y: data.y ?? 0 },
-        });
+      for (const data of cmd.elements ?? [cmd.elementData]) {
+        addElementFromData(data);
       }
     } else if (cmd.type === 'delete') {
-      cy.value.getElementById(cmd.elementData.id).remove();
-      if (selectedElement.value?.id === cmd.elementData.id) {
-        selectedElement.value = null;
+      const ele = cy.value.getElementById(cmd.elementData.id);
+      if (ele.length > 0) {
+        ele.remove();
       }
+      syncSelectionPanel();
     } else if (cmd.type === 'modify') {
       const data = cmd.elementData;
       const ele = cy.value.getElementById(data.id);
@@ -776,6 +1079,7 @@ export function usePetriNet() {
           position: { x: el.x ?? 0, y: el.y ?? 0 },
           classes: 'place-wrapper',
         });
+        makeWrapperNonSelectable(cy.value, el.id);
         cy.value.add({
           group: 'nodes',
           data: { id: innerId, parent: el.id, tokens: el.tokens ?? 0 },
@@ -985,6 +1289,7 @@ export function usePetriNet() {
   }
 
   function destroy() {
+    interactionCleanups.splice(0).forEach(cleanup => cleanup());
     cy.value?.destroy();
     cy.value = null;
   }
@@ -997,6 +1302,7 @@ export function usePetriNet() {
     arcSourceId,
     undoStack,
     redoStack,
+    clipboard,
     firingHistory,
     autoFiring,
     autoFireSpeed,
@@ -1005,6 +1311,8 @@ export function usePetriNet() {
     addTransition,
     addArc,
     deleteElement,
+    copySelection,
+    pasteClipboard,
     setTokens,
     incrementTokens,
     setLabel,

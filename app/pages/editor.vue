@@ -4,6 +4,8 @@ import IconUndo from '~icons/tabler/arrow-back-up';
 import IconRedo from '~icons/tabler/arrow-forward-up';
 import IconGithub from '~icons/tabler/brand-github';
 import IconCheck from '~icons/tabler/check';
+import IconPaste from '~icons/tabler/clipboard';
+import IconCopy from '~icons/tabler/copy';
 import IconSave from '~icons/tabler/device-floppy-filled';
 import IconExternalLink from '~icons/tabler/external-link';
 import IconLoad from '~icons/tabler/file-upload';
@@ -72,6 +74,53 @@ function handleClearNet() {
   activeTab.value.petriNet.clearNet();
 }
 
+function handleCopy() {
+  if (activeTab.value.type !== 'petri-net')
+    return;
+  activeTab.value.petriNet.copySelection();
+}
+
+function handlePaste() {
+  if (activeTab.value.type !== 'petri-net')
+    return;
+  activeTab.value.petriNet.pasteClipboard();
+}
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  const el = target as HTMLElement | null;
+  if (!el || !el.tagName)
+    return false;
+  return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable;
+}
+
+function onEditorKeydown(e: KeyboardEvent) {
+  if (activeTab.value.type !== 'petri-net')
+    return;
+  const petriNet = activeTab.value.petriNet;
+  if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+    e.preventDefault();
+    petriNet.undo();
+  }
+  if (e.ctrlKey && e.key === 'z' && e.shiftKey) {
+    e.preventDefault();
+    petriNet.redo();
+  }
+  if (e.ctrlKey && e.key === 'y') {
+    e.preventDefault();
+    petriNet.redo();
+  }
+  if (isEditableTarget(e.target))
+    return;
+  if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+    e.preventDefault();
+    petriNet.copySelection();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+    e.preventDefault();
+    petriNet.pasteClipboard();
+  }
+}
+
 function handleShareLink() {
   if (activeTab.value.type !== 'petri-net')
     return;
@@ -100,27 +149,12 @@ onMounted(() => {
   if (import.meta.dev) {
     window.__PETRI_NET_DEBUG__ = activeTab.value.type === 'petri-net' ? activeTab.value.petriNet : undefined;
   }
-
-  window.addEventListener('keydown', (e: KeyboardEvent) => {
-    if (activeTab.value.type !== 'petri-net')
-      return;
-    if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
-      e.preventDefault();
-      activeTab.value.petriNet.undo();
-    }
-    if (e.ctrlKey && e.key === 'z' && e.shiftKey) {
-      e.preventDefault();
-      activeTab.value.petriNet.redo();
-    }
-    if (e.ctrlKey && e.key === 'y') {
-      e.preventDefault();
-      activeTab.value.petriNet.redo();
-    }
-  });
+  window.addEventListener('keydown', onEditorKeydown);
   window.addEventListener('beforeunload', handleBeforeUnload);
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onEditorKeydown);
   window.removeEventListener('beforeunload', handleBeforeUnload);
 });
 </script>
@@ -161,6 +195,26 @@ onBeforeUnmount(() => {
               @click="activeTab.type === 'petri-net' && activeTab.petriNet.redo()"
             >
               <IconRedo />
+            </button>
+          </div>
+          <div class="tooltip tooltip-bottom" data-tip="Copy selection (Ctrl+C)">
+            <button
+              class="btn btn-sm join-item"
+              :disabled="activeTab.type !== 'petri-net' || activeTab.petriNet.selectedElement.value == null"
+              data-testid="copy"
+              @click="handleCopy"
+            >
+              <IconCopy />
+            </button>
+          </div>
+          <div class="tooltip tooltip-bottom" data-tip="Paste (Ctrl+V)">
+            <button
+              class="btn btn-sm join-item"
+              :disabled="activeTab.type !== 'petri-net' || activeTab.petriNet.clipboard.value == null"
+              data-testid="paste"
+              @click="handlePaste"
+            >
+              <IconPaste />
             </button>
           </div>
         </div>

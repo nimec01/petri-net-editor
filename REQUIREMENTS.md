@@ -39,5 +39,5 @@
 ## Advanced
 
 - [ ] **Import/export PNML** - Support standard Petri net exchange format
-- [ ] **Copy/paste** - Duplicate elements within or across nets
+- [X] **Copy/paste** - Duplicate elements within or across nets
 - [X] **Sharing** - URL-encoded Petri net
