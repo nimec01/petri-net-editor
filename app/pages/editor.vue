@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { PetriNetState } from '~/types/petri-net';
+import type { EditorMode, PetriNetState } from '~/types/petri-net';
 import IconUndo from '~icons/tabler/arrow-back-up';
 import IconRedo from '~icons/tabler/arrow-forward-up';
 import IconGithub from '~icons/tabler/brand-github';
@@ -9,6 +9,7 @@ import IconCopy from '~icons/tabler/copy';
 import IconSave from '~icons/tabler/device-floppy-filled';
 import IconExternalLink from '~icons/tabler/external-link';
 import IconLoad from '~icons/tabler/file-upload';
+import IconKeyboard from '~icons/tabler/keyboard';
 import IconLink from '~icons/tabler/link';
 import IconTrash from '~icons/tabler/trash';
 import boundednessExtension from '~/extensions/boundedness';
@@ -40,6 +41,7 @@ const releaseUrl = `${githubUrl}/releases`;
 const exportModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
 const importModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
 const renameModal = shallowRef<{ open: (id: string, name: string) => void; close: () => void } | null>(null);
+const shortcutsModal = shallowRef<{ open: () => void; close: () => void } | null>(null);
 const linkCopied = ref(false);
 
 if (import.meta.client) {
@@ -93,31 +95,101 @@ function isEditableTarget(target: EventTarget | null): boolean {
   return el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable;
 }
 
+const TOOL_SHORTCUTS: Record<string, EditorMode> = {
+  1: 'select',
+  2: 'place',
+  3: 'transition',
+  4: 'arc',
+  5: 'token',
+  6: 'delete',
+};
+
 function onEditorKeydown(e: KeyboardEvent) {
-  if (activeTab.value.type !== 'petri-net')
+  if (e.ctrlKey || e.metaKey || e.altKey) {
+    if (activeTab.value.type !== 'petri-net')
+      return;
+    const petriNet = activeTab.value.petriNet;
+    if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      petriNet.undo();
+    }
+    if (e.ctrlKey && e.key === 'z' && e.shiftKey) {
+      e.preventDefault();
+      petriNet.redo();
+    }
+    if (e.ctrlKey && e.key === 'y') {
+      e.preventDefault();
+      petriNet.redo();
+    }
+    if (e.ctrlKey && (e.key === '+' || e.key === '=')) {
+      e.preventDefault();
+      petriNet.zoomIn();
+    }
+    if (e.ctrlKey && e.key === '-') {
+      e.preventDefault();
+      petriNet.zoomOut();
+    }
+    if (e.ctrlKey && e.key === '0') {
+      e.preventDefault();
+      petriNet.zoomToFit();
+    }
+    if (isEditableTarget(e.target))
+      return;
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+      e.preventDefault();
+      petriNet.copySelection();
+    }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      e.preventDefault();
+      petriNet.pasteClipboard();
+    }
     return;
-  const petriNet = activeTab.value.petriNet;
-  if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
-    e.preventDefault();
-    petriNet.undo();
-  }
-  if (e.ctrlKey && e.key === 'z' && e.shiftKey) {
-    e.preventDefault();
-    petriNet.redo();
-  }
-  if (e.ctrlKey && e.key === 'y') {
-    e.preventDefault();
-    petriNet.redo();
   }
   if (isEditableTarget(e.target))
     return;
-  if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+
+  if (e.key === '?') {
     e.preventDefault();
-    petriNet.copySelection();
+    shortcutsModal.value?.open();
+    return;
   }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+
+  if (e.key === 'Escape' && activeTab.value.type === 'petri-net') {
+    const petriNet = activeTab.value.petriNet;
+    if (petriNet.mode.value === 'fire') {
+      petriNet.mode.value = 'select';
+    } else {
+      petriNet.closeProperties();
+      petriNet.mode.value = 'select';
+    }
+    return;
+  }
+
+  if (e.key.toLowerCase() === 'f' && activeTab.value.type === 'petri-net') {
     e.preventDefault();
-    petriNet.pasteClipboard();
+    const petriNet = activeTab.value.petriNet;
+    petriNet.mode.value = petriNet.mode.value === 'fire' ? 'select' : 'fire';
+    return;
+  }
+
+  const mode = TOOL_SHORTCUTS[e.key];
+  if (mode) {
+    e.preventDefault();
+    if (activeTab.value.type === 'petri-net') {
+      activeTab.value.petriNet.mode.value = mode;
+    }
+    return;
+  }
+
+  if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (activeTab.value.type !== 'petri-net')
+      return;
+    const petriNet = activeTab.value.petriNet;
+    const selected = petriNet.selectedElement.value;
+    if (selected) {
+      e.preventDefault();
+      petriNet.deleteElement(selected.id);
+    }
   }
 }
 
@@ -274,6 +346,15 @@ onBeforeUnmount(() => {
         >
           <IconGithub />
         </a>
+        <button
+          class="btn btn-sm btn-ghost ml-2"
+          aria-label="Keyboard shortcuts"
+          title="Keyboard shortcuts (?)"
+          data-testid="shortcuts-toggle"
+          @click="shortcutsModal?.open()"
+        >
+          <IconKeyboard />
+        </button>
       </div>
     </div>
 
@@ -320,5 +401,6 @@ onBeforeUnmount(() => {
     />
     <EditorImportModal ref="importModal" @import="handleImportData" />
     <EditorRenameModal ref="renameModal" @rename="(name) => renameTab(activeTab.id, name)" />
+    <EditorShortcutsModal ref="shortcutsModal" />
   </div>
 </template>
