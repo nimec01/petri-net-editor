@@ -1,0 +1,27 @@
+{
+  "features": {
+    "ghcr.io/devcontainers-extra/features/apt-get-packages:1": {
+      "version": "1.0.8",
+      "resolved": "ghcr.io/devcontainers-extra/features/apt-get-packages@sha256:776fa11c30c50fa91d5e1bf050444b0f130827457109c349db92e8e126b750ec",
+      "integrity": "sha256:776fa11c30c50fa91d5e1bf050444b0f130827457109c349db92e8e126b750ec"
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "version": "2.5.9",
+      "resolved": "ghcr.io/devcontainers/features/common-utils@sha256:cb0c4d3c276f157eed17935747e364178d75fee17f55c4e129966f64633deb3a",
+      "integrity": "sha256:cb0c4d3c276f157eed17935747e364178d75fee17f55c4e129966f64633deb3a"
+    },
+    "ghcr.io/nimec01/dev/devcontainer-features/firewall:latest": {
+      "version": "0.0.2",
+      "resolved": "ghcr.io/nimec01/dev/devcontainer-features/firewall@sha256:6bb09ab6bac1abad2a6f113c3bb1f5874ee54a2aa4d55b8c0621a64f59f2050c",
+      "integrity": "sha256:6bb09ab6bac1abad2a6f113c3bb1f5874ee54a2aa4d55b8c0621a64f59f2050c",
+      "dependsOn": [
+        "ghcr.io/devcontainers-extra/features/apt-get-packages:1"
+      ]
+    },
+    "ghcr.io/nimec01/dev/devcontainer-features/zsh-aliases:latest": {
+      "version": "0.1.0",
+      "resolved": "ghcr.io/nimec01/dev/devcontainer-features/zsh-aliases@sha256:18e02582fca6c64f49c5483d72aaa9c283200195e6aee7a400c13165b38acb60",
+      "integrity": "sha256:18e02582fca6c64f49c5483d72aaa9c283200195e6aee7a400c13165b38acb60"
+    }
+  }
+}
