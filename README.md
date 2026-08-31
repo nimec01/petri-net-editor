@@ -5,10 +5,10 @@ An interactive, browser-based [Petri net](https://en.wikipedia.org/wiki/Petri_ne
 Built with [Nuxt](https://nuxt.com/) 4, Vue 3, TypeScript, [Cytoscape.js](https://js.cytoscape.org/), Tailwind CSS v4, and [daisyUI](https://daisyui.com/) 5.
 
 > [!WARNING]
-> **Status: under active development.** This project is a work in progress. Breaking changes can happen at any time, and the application is not optimized for performance — expect rough edges, especially with large nets.
+> This project is a work in progress. Breaking changes can happen at any time, and the application is not optimized for performance — expect rough edges, especially with large nets.
 
 > [!NOTE]
-> **Note: This project made heavy use of AI coding agents.**
+> This project made heavy use of AI coding agents.
 
 ## Features
 
