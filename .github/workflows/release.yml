@@ -40,9 +40,49 @@ jobs:
           pr-title: Release package(s)
           commit-message: release package(s)
 
+  convert-to-object:
+    name: Convert to Object
+    runs-on: ubuntu-slim
+    needs: release
+    outputs:
+      packagesRecord: ${{ steps.convert.outputs.result }}
+    steps:
+      - name: Convert
+        id: convert
+        run: |
+          converted=$(echo '${{ needs.release.outputs.publishedPackages }}' | jq -c 'reduce .[] as $item ({}; .[$item.name] = $item.version)')
+          echo "result=$converted" >> $GITHUB_OUTPUT
+
   deploy:
     name: Deploy to Production
-    needs: release
-    if: ${{ needs.release.outputs.publishedPackages != '' && needs.release.outputs.publishedPackages != '[]' }}
+    needs: convert-to-object
+    if: fromJSON(needs.convert-to-object.outputs.packagesRecord)['petri-net-editor']
     uses: ./.github/workflows/deploy-production.yml
     secrets: inherit
+
+  docker:
+    name: Build and Push Docker Image
+    needs: convert-to-object
+    if: fromJSON(needs.convert-to-object.outputs.packagesRecord)['petri-net-editor']
+    uses: docker/github-builder/.github/workflows/build.yml@c4a1b216d96a8c85b45a9974b37857828274c808 # v1
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    with:
+      output: image
+      push: true
+      platforms: linux/amd64,linux/arm64
+      context: .
+      file: Dockerfile
+      meta-images: ghcr.io/nimec01/petri-net-editor
+      meta-tags: |
+        type=sha
+        type=pep440,pattern={{version}},value=${{ fromJSON(needs.convert-to-object.outputs.packagesRecord)['petri-net-editor'] }}
+      meta-flavor: |
+        latest=true
+    secrets:
+      registry-auths: |
+        - registry: ghcr.io
+          username: nimec01
+          password: ${{ secrets.GITHUB_TOKEN }}
