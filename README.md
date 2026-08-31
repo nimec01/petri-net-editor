@@ -4,7 +4,11 @@ An interactive, browser-based [Petri net](https://en.wikipedia.org/wiki/Petri_ne
 
 Built with [Nuxt](https://nuxt.com/) 4, Vue 3, TypeScript, [Cytoscape.js](https://js.cytoscape.org/), Tailwind CSS v4, and [daisyUI](https://daisyui.com/) 5.
 
+> [!WARNING]
 > **Status: under active development.** This project is a work in progress. Breaking changes can happen at any time, and the application is not optimized for performance — expect rough edges, especially with large nets.
+
+> [!NOTE]
+> **Note: This project made heavy use of AI coding agents.**
 
 ## Features
 
@@ -17,6 +21,23 @@ Built with [Nuxt](https://nuxt.com/) 4, Vue 3, TypeScript, [Cytoscape.js](https:
 - **Persistence** — save/load nets to JSON, share a net as an encoded URL, or load it by sending it to the server with a POST request
 - **Enabled-transition highlighting** — see at a glance which transitions can fire
 
+## Deployment
+
+There is currently **no public instance** available. You can self-host the application using Docker.
+
+```bash
+docker run -p 3000:3000 ghcr.io/nimec01/petri-net-editor:latest
+```
+
+You can also build the Docker image yourself:
+
+```bash
+docker build -t petri-net-editor .
+docker run -p 3000:3000 petri-net-editor
+```
+
+The editor is then available at <http://localhost:3000>.
+
 ## Getting started
 
 Requirements: Node.js 20+ and [pnpm](https://pnpm.io/).
@@ -27,6 +48,8 @@ pnpm dev
 ```
 
 The dev server runs at <http://localhost:3000>.
+
+A [Devcontainer](.devcontainer/) is set up for this project, so you can also develop inside a ready-made container using VS Code's Dev Containers support.
 
 ## Production
 
