@@ -49,8 +49,6 @@ jobs:
 
       - name: Setup PNPM and Node
         uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
-        with:
-          runtime: node@24.20.0
 
       - name: Build
         run: pnpm build
@@ -74,8 +72,6 @@ jobs:
 
       - name: Setup PNPM and Node
         uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
-        with:
-          runtime: node@24.20.0
 
       - name: Run tests
         run: pnpm run test:unit
@@ -93,8 +89,6 @@ jobs:
 
       - name: Setup PNPM and Node
         uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
-        with:
-          runtime: node@24.20.0
 
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
