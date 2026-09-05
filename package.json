@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.2.0",
   "private": true,
-  "packageManager": "pnpm@11.24.0",
+  "packageManager": "pnpm@12.3.0",
   "description": "Interactive, browser-based Petri net editor with simulation and analysis tooling",
   "author": {
     "name": "nimec01"
