@@ -27,6 +27,13 @@
     "vue",
     "cytoscape"
   ],
+  "devEngines": {
+    "runtime": {
+      "name": "node",
+      "version": "24.20.0",
+      "onFail": "download"
+    }
+  },
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
