@@ -52,7 +52,8 @@
   "automergeType": "pr",
   "gitIgnoredAuthors": [
     "github-actions@github.com",
-    "24428341+nimec01@users.noreply.github.com"
+    "24428341+nimec01@users.noreply.github.com",
+    "114827586+autofix-ci[bot]@users.noreply.github.com"
   ],
   "automergeSchedule": [
     "* 0-3 * * 0"
