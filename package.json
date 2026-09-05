@@ -67,6 +67,6 @@
     "unplugin-vue-components": "32.1.0",
     "vitest": "4.1.11",
     "vue-tsc": "3.3.11",
-    "wrangler": "4.126.0"
+    "wrangler": "4.128.0"
   }
 }
