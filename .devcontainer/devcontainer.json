@@ -12,7 +12,10 @@
       "installOhMyZsh": true,
       "configureZshAsDefaultShell": true
     },
-    "ghcr.io/nimec01/dev/devcontainer-features/firewall:latest": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "moby": false
+    },
+    "ghcr.io/nimec01/dev/devcontainer-features/firewall:0.1.1": {
       "verbose": true,
       "hosts": "nuxt.com",
       "githubIps": true,
@@ -24,7 +27,7 @@
       "opencode": true,
       "nodejs": true
     },
-    "ghcr.io/nimec01/dev/devcontainer-features/zsh-aliases:latest": {
+    "ghcr.io/nimec01/dev/devcontainer-features/zsh-aliases:0.1.0": {
       "aliases": "npx=pnpm dlx"
     }
   },
