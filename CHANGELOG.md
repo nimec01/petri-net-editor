@@ -1,5 +1,11 @@
 # petri-net-editor
 
+## 0.3.1
+
+### Patch Changes
+
+- 2da831d: fix release workflow
+
 ## 0.3.0
 
 ### Minor Changes

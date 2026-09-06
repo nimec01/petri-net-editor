@@ -1,7 +1,7 @@
 {
   "name": "petri-net-editor",
   "type": "module",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "private": true,
   "packageManager": "pnpm@12.3.0",
   "description": "Interactive, browser-based Petri net editor with simulation and analysis tooling",
