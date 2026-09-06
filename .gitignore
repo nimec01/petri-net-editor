@@ -6,6 +6,10 @@
 .cache
 dist
 
+# Wrangler / Cloudflare
+.wrangler
+.dev.vars
+
 # Node dependencies
 node_modules
 .pnpm-store

@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy to Cloudflare Pages
+    name: Deploy to Cloudflare Workers
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -19,11 +19,11 @@ jobs:
       - name: Setup PNPM and Node
         uses: pnpm/setup@84cb39b217b10273981911c288cd62326dc7c6d2 # v2
 
-      - name: Generate static site
-        run: pnpm generate
+      - name: Build for Cloudflare Workers
+        run: pnpm build
 
-      - name: Deploy to Cloudflare Pages
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: pnpm exec wrangler pages deploy .output/public --project-name=petri-net-editor --branch=main
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

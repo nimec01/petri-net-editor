@@ -38,7 +38,7 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "preview": "nuxt preview",
+    "preview": "wrangler --cwd .output dev",
     "postinstall": "nuxt prepare",
     "test": "pnpm run test:unit && pnpm run test:e2e",
     "test:unit": "vitest run",

@@ -10,7 +10,9 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN pnpm build
+# The project's default Nitro preset is Cloudflare Workers; request the
+# Node.js server preset here so the image runs the app as a Node service.
+RUN NITRO_PRESET=node-server pnpm build
 
 
 FROM node:24-alpine AS run
