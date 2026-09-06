@@ -26,12 +26,10 @@ ENV PORT=3000
 COPY --from=build /app/.output .output
 
 # Install only the production dependencies that Nuxt's node-server output
-# declares in .output/server/package.json. corepack provides the pinned
-# pnpm, and is disabled again so the final image keeps just the runtime.
-RUN corepack enable \
-    && cd .output/server \
-    && NODE_ENV=production pnpm install --prod \
-    && corepack disable
+# declares in .output/server/package.json. Uses npm instead of pnpm because
+# pnpm relies on symlinks that fail across Docker overlay devices after COPY.
+RUN cd .output/server \
+    && NODE_ENV=production npm install --omit=dev
 
 # Run as an unprivileged user
 RUN addgroup --system --gid 1001 app \
