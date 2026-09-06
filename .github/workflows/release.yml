@@ -53,13 +53,6 @@ jobs:
           converted=$(echo '${{ needs.release.outputs.publishedPackages }}' | jq -c 'reduce .[] as $item ({}; .[$item.name] = $item.version)')
           echo "result=$converted" >> $GITHUB_OUTPUT
 
-  deploy:
-    name: Deploy to Production
-    needs: convert-to-object
-    if: fromJSON(needs.convert-to-object.outputs.packagesRecord)['petri-net-editor']
-    uses: ./.github/workflows/deploy-production.yml
-    secrets: inherit
-
   docker:
     name: Build and Push Docker Image
     needs: convert-to-object
