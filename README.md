@@ -38,6 +38,8 @@ docker run -p 3000:3000 petri-net-editor
 
 The editor is then available at <http://localhost:3000>.
 
+For deploying to Cloudflare Workers, see the [Production](#production) section.
+
 ## Getting started
 
 Requirements: Node.js 20+ and [pnpm](https://pnpm.io/).
@@ -53,16 +55,13 @@ A [Devcontainer](.devcontainer/) is set up for this project, so you can also dev
 
 ## Production
 
-```bash
-pnpm build
-pnpm preview
-```
-
-Or generate a static site:
+The default build produces a Cloudflare Workers server build in `.output/`:
 
 ```bash
-pnpm generate
+pnpm build       # build the Worker (and static assets in .output/public)
+pnpm preview     # serve the build locally with Wrangler
 ```
+The Docker image is built separately with the Node.js server preset (`NITRO_PRESET=node-server`).
 
 ## Quality checks
 
