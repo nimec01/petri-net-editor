@@ -16,9 +16,6 @@ export default defineNuxtConfig({
         name: 'petri-net-editor',
       },
     },
-    replace: {
-      'typeof window': 'undefined',
-    },
   },
   modules: [
     'unplugin-icons/nuxt',
