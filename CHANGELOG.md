@@ -1,5 +1,11 @@
 # petri-net-editor
 
+## 0.3.2
+
+### Patch Changes
+
+- fad3610: Fix workflow not correctly determining whether version was released or not.
+
 ## 0.3.1
 
 ### Patch Changes
