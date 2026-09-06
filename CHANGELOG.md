@@ -1,5 +1,11 @@
 # petri-net-editor
 
+## 0.3.3
+
+### Patch Changes
+
+- 18611d4: Fix docker build failing
+
 ## 0.3.2
 
 ### Patch Changes
