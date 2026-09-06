@@ -15,5 +15,5 @@ overrides:
 
 allowBuilds:
   '@parcel/watcher': false
-  workerd: true
   esbuild: false
+  workerd: true
