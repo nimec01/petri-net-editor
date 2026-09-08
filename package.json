@@ -54,7 +54,7 @@
     "cytoscape": "3.34.2",
     "cytoscape-dagre": "4.0.1",
     "dagre": "0.8.5",
-    "daisyui": "5.7.27",
+    "daisyui": "5.7.28",
     "fflate": "0.8.3",
     "katex": "0.18.5",
     "nuxt": "4.5.2",
@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "9.5.1",
-    "@changesets/cli": "3.0.1",
+    "@changesets/cli": "3.0.2",
     "@iconify/json": "2.2.525",
     "@playwright/test": "1.62.1",
     "@types/node": "26.4.1",
