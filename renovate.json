@@ -25,11 +25,12 @@
         "npm"
       ],
       "matchUpdateTypes": [
-        "patch"
+        "patch",
+        "minor"
       ],
       "matchCurrentVersion": ">=1.0.0",
-      "groupName": "all patch updates",
-      "groupSlug": "all-patch",
+      "groupName": "non major updates",
+      "groupSlug": "non-majorr",
       "automerge": true,
       "platformAutomerge": true
     },
