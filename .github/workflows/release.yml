@@ -57,7 +57,7 @@ jobs:
     name: Build and Push Docker Image
     needs: convert-to-object
     if: fromJSON(needs.convert-to-object.outputs.packagesRecord || '{}') && fromJSON(needs.convert-to-object.outputs.packagesRecord || '{}')['petri-net-editor']
-    uses: docker/github-builder/.github/workflows/build.yml@c4a1b216d96a8c85b45a9974b37857828274c808 # v1
+    uses: docker/github-builder/.github/workflows/build.yml@58cb9f5b71b1836d6f690c1e95effdeb9b98cb8a # v1
     permissions:
       contents: write
       id-token: write
