@@ -1,5 +1,11 @@
 # petri-net-editor
 
+## 0.3.4
+
+### Patch Changes
+
+- eac7094: Update dependency katex to v0.18.7
+
 ## 0.3.3
 
 ### Patch Changes
