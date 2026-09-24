@@ -1,5 +1,14 @@
 # petri-net-editor
 
+## 0.3.4
+
+### Patch Changes
+
+- 996a730: Update dependency vitest to v5
+- 05d6e05: Update non major updates
+- eac7094: Update dependency katex to v0.18.7
+- 7218971: Update dependency unplugin-icons to v24
+
 ## 0.3.3
 
 ### Patch Changes
