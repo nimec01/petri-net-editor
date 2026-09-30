@@ -18,7 +18,7 @@ Built with [Nuxt](https://nuxt.com/) 4, Vue 3, TypeScript, [Cytoscape.js](https:
 - **Simulation** — manually fire enabled transitions, run automatic random firing, step through executions, and inspect the firing history / trace
 - **Analysis** — extensions for reachability, reachability graphs, boundedness, liveness, safeness, and deadlock detection
 - **Math notation** — render state equations and formulas with KaTeX
-- **Persistence** — save/load nets to JSON, share a net as an encoded URL, or load it by sending it to the server with a POST request
+- **Persistence** — save/load nets to JSON or PNML, share a net as an encoded URL, or load it by sending it to the server with a POST request
 - **Enabled-transition highlighting** — see at a glance which transitions can fire
 
 ## Deployment

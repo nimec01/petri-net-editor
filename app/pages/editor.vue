@@ -19,6 +19,7 @@ import mathNotationExtension from '~/extensions/math-notation';
 import reachabilityExtension from '~/extensions/reachability';
 import reachabilityGraphExtension from '~/extensions/reachability-graph';
 import safenessExtension from '~/extensions/safeness';
+import { exportToPnml } from '~/utils/pnml';
 import { version } from '../../package.json';
 
 const { tabs, activeTabId, activeTab, splitViewId, splitViewTab, addTab, openReachabilityGraph, closeTab, duplicateTab, renameTab, switchTab, toggleSplitView } = useTabs();
@@ -210,6 +211,12 @@ const activeTabJson = computed(() => {
   return JSON.stringify({ ...activeTab.value.petriNet.exportToJson(), title: activeTab.value.name }, null, 2);
 });
 
+const activeTabPnml = computed(() => {
+  if (activeTab.value.type !== 'petri-net')
+    return '';
+  return exportToPnml({ ...activeTab.value.petriNet.exportToJson(), title: activeTab.value.name });
+});
+
 function handleBeforeUnload(e: BeforeUnloadEvent) {
   const hasContent = tabs.value.some(t => t.type === 'petri-net' && !t.petriNet.isNetEmpty.value);
   if (hasContent) {
@@ -398,6 +405,7 @@ onBeforeUnmount(() => {
       v-if="activeTab.type === 'petri-net'"
       ref="exportModal"
       :json="() => activeTabJson"
+      :pnml="() => activeTabPnml"
     />
     <EditorImportModal ref="importModal" @import="handleImportData" />
     <EditorRenameModal ref="renameModal" @rename="(name) => renameTab(activeTab.id, name)" />
