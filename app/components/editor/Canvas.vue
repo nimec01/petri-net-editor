@@ -35,7 +35,7 @@ onMounted(() => {
   <div
     ref="container"
     data-testid="editor-canvas"
-    class="w-full h-full"
+    class="w-full h-full touch-none"
     :class="{
       'cursor-crosshair': mode === 'place' || mode === 'transition' || mode === 'arc',
       'cursor-pointer': mode === 'token',
