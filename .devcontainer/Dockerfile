@@ -4,6 +4,8 @@ RUN pnpm runtime set node lts -g
 
 RUN pnpm dlx playwright install --with-deps chromium
 
+RUN curl -fsSL https://gh.io/copilot-install | bash
+
 RUN curl -fsSL https://opencode.ai/install | bash
 
 RUN apt update && apt install -y --no-install-recommends vim
