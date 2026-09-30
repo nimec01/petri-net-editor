@@ -244,7 +244,8 @@ export function usePetriNet() {
 
   const interactionCleanups: Array<() => void> = [];
 
-  const WHEEL_ZOOM_SENSITIVITY = 1000;
+  const WHEEL_ZOOM_SENSITIVITY = 500;
+  const TRACKPAD_WHEEL_DELTA_THRESHOLD = 50;
 
   function setupCustomInteractions(container: HTMLElement, instance: Core) {
     let panning = false;
@@ -286,10 +287,22 @@ export function usePetriNet() {
     }
 
     function onWheel(e: WheelEvent) {
-      if (e.deltaY === 0)
+      if (e.deltaX === 0 && e.deltaY === 0)
         return;
       e.preventDefault();
-      const deltaY = e.deltaMode === 1 ? e.deltaY * 33 : e.deltaY;
+      const scale = e.deltaMode === WheelEvent.DOM_DELTA_LINE ? 33 : 1;
+      const deltaX = e.deltaX * scale;
+      const deltaY = e.deltaY * scale;
+
+      const isPinch = e.ctrlKey;
+      const isLikelyTrackpad = e.deltaX !== 0
+        || !Number.isInteger(e.deltaY)
+        || Math.abs(deltaY) < TRACKPAD_WHEEL_DELTA_THRESHOLD;
+      if (!isPinch && isLikelyTrackpad) {
+        instance.panBy({ x: -deltaX, y: -deltaY });
+        return;
+      }
+
       const rect = container.getBoundingClientRect();
       const newZoom = Math.min(
         instance.maxZoom(),
