@@ -1,5 +1,17 @@
 # petri-net-editor
 
+## 0.3.4
+
+### Patch Changes
+
+- 996a730: Update dependency vitest to v5
+- 05d6e05: Update non major updates
+- eac7094: Update dependency katex to v0.18.7
+- 7218971: Update dependency unplugin-icons to v24
+- 83f1c46: Update non major updates
+- 5c961ac: Update dependency katex to v0.18.9
+- dd8c684: Improve canvas navigation with two-finger trackpad panning and pinch-to-zoom.
+
 ## 0.3.3
 
 ### Patch Changes
