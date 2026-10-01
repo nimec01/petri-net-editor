@@ -47,6 +47,46 @@ test.describe('save / load / share', () => {
     expect(model.arcs).toHaveLength(2);
   });
 
+  test('exports and imports the net as PNML', async ({ page }) => {
+    await gotoEditor(page);
+    await setupNet(page, {
+      places: [
+        { label: 'Input', tokens: 2, x: 100, y: 200 },
+        { label: 'Output', x: 400, y: 200 },
+      ],
+      transitions: [{ label: 'Process', x: 250, y: 200 }],
+      arcs: [
+        { from: 'Input', to: 'Process', weight: 2 },
+        { from: 'Process', to: 'Output' },
+      ],
+    });
+
+    await page.getByTestId('save').click();
+    await page.getByTestId('export-format').selectOption('pnml');
+    const pnml = await page.getByTestId('export-pnml').inputValue();
+
+    expect(pnml).toContain('<pnml');
+    expect(pnml).toContain('<place');
+    expect(pnml).toContain('<transition');
+    expect(pnml).toContain('<initialMarking><text>2</text></initialMarking>');
+    expect(pnml).toContain('<inscription><text>2</text></inscription>');
+
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    page.on('dialog', dialog => dialog.accept());
+    await page.getByTestId('clear-net').click();
+
+    await page.getByTestId('load').click();
+    await page.getByTestId('import-format').selectOption('pnml');
+    await page.getByTestId('import-pnml').fill(pnml);
+    await page.getByTestId('import-confirm').click();
+
+    const model = await netModel(page);
+    expect(model.places.map(place => place.label)).toEqual(['Input', 'Output']);
+    expect(model.places.find(place => place.label === 'Input')!.tokens).toBe(2);
+    expect(model.transitions.map(transition => transition.label)).toEqual(['Process']);
+    expect(model.arcs.map(arc => arc.weight)).toEqual([2, 1]);
+  });
+
   test('rejects malformed JSON on import', async ({ page }) => {
     await gotoEditor(page);
 
