@@ -30,7 +30,7 @@
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "24.21.0",
+      "version": "24.22.0",
       "onFail": "download"
     }
   },
@@ -54,26 +54,26 @@
     "cytoscape": "3.34.3",
     "cytoscape-dagre": "4.0.1",
     "dagre": "0.8.5",
-    "daisyui": "5.7.47",
+    "daisyui": "5.7.50",
     "fflate": "0.8.3",
     "katex": "0.19.0",
-    "nuxt": "4.6.0",
+    "nuxt": "4.6.1",
     "tailwindcss": "4.3.3",
-    "vue": "3.5.43",
+    "vue": "3.5.44",
     "vue-router": "5.4.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "9.5.1",
     "@changesets/cli": "3.0.3",
-    "@iconify/json": "2.2.540",
-    "@playwright/test": "1.64.0",
-    "@types/node": "26.6.4",
+    "@iconify/json": "2.2.543",
+    "@playwright/test": "1.64.1",
+    "@types/node": "26.6.5",
     "eslint": "10.12.0",
     "typescript": "6.0.3",
     "unplugin-icons": "24.0.0",
     "unplugin-vue-components": "32.1.0",
-    "vitest": "5.0.3",
-    "vue-tsc": "3.3.12",
-    "wrangler": "4.148.0"
+    "vitest": "5.0.4",
+    "vue-tsc": "3.3.13",
+    "wrangler": "4.151.0"
   }
 }
