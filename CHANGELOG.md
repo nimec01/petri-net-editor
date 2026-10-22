@@ -1,5 +1,18 @@
 # petri-net-editor
 
+## 0.4.0
+
+### Minor Changes
+
+- e42263a: Add PNML import and export support alongside the existing JSON format.
+
+### Patch Changes
+
+- ca408ca: Update non major updates
+- e289bfc: Update dependency katex to v0.19.0
+- 27582e6: Update non major updates
+- 3ef4616: Update non major updates
+
 ## 0.3.4
 
 ### Patch Changes
