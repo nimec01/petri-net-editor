@@ -169,7 +169,9 @@ function onEditorKeydown(e: KeyboardEvent) {
   if (e.key.toLowerCase() === 'f' && activeTab.value.type === 'petri-net') {
     e.preventDefault();
     const petriNet = activeTab.value.petriNet;
-    petriNet.mode.value = petriNet.mode.value === 'fire' ? 'select' : 'fire';
+    petriNet.mode.value = petriNet.mode.value === 'fire'
+      ? 'select'
+      : 'fire';
     return;
   }
 
@@ -208,13 +210,19 @@ function handleShareLink() {
 const activeTabJson = computed(() => {
   if (activeTab.value.type !== 'petri-net')
     return '';
-  return JSON.stringify({ ...activeTab.value.petriNet.exportToJson(), title: activeTab.value.name }, null, 2);
+  return JSON.stringify({
+    ...activeTab.value.petriNet.exportToJson(),
+    title: activeTab.value.name,
+  }, null, 2);
 });
 
 const activeTabPnml = computed(() => {
   if (activeTab.value.type !== 'petri-net')
     return '';
-  return exportToPnml({ ...activeTab.value.petriNet.exportToJson(), title: activeTab.value.name });
+  return exportToPnml({
+    ...activeTab.value.petriNet.exportToJson(),
+    title: activeTab.value.name,
+  });
 });
 
 function handleBeforeUnload(e: BeforeUnloadEvent) {
@@ -226,7 +234,9 @@ function handleBeforeUnload(e: BeforeUnloadEvent) {
 
 onMounted(() => {
   if (import.meta.dev) {
-    window.__PETRI_NET_DEBUG__ = activeTab.value.type === 'petri-net' ? activeTab.value.petriNet : undefined;
+    window.__PETRI_NET_DEBUG__ = activeTab.value.type === 'petri-net'
+      ? activeTab.value.petriNet
+      : undefined;
   }
   window.addEventListener('keydown', onEditorKeydown);
   window.addEventListener('beforeunload', handleBeforeUnload);

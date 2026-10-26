@@ -7,7 +7,12 @@ export default antfu({
     quotes: 'single',
     semi: true,
   },
-  ignores: ['.nuxt', '.turbo', '.output', 'node_modules'],
+  ignores: [
+    '.nuxt',
+    '.turbo',
+    '.output',
+    'node_modules',
+  ],
 
   rules: {
     'style/brace-style': ['error', '1tbs'],

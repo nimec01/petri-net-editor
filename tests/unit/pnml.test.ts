@@ -7,9 +7,29 @@ describe('exportToPnml', () => {
       title: 'Transfer & Test',
       formatVersion: 1,
       elements: [
-        { id: 'p1', type: 'place', label: 'Input <A>', tokens: 2, x: 100, y: 150 },
-        { id: 't1', type: 'transition', label: 'Fire', x: 250, y: 150 },
-        { id: 'a1', type: 'arc', label: '', source: 'p1', target: 't1', weight: 2 },
+        {
+          id: 'p1',
+          type: 'place',
+          label: 'Input <A>',
+          tokens: 2,
+          x: 100,
+          y: 150,
+        },
+        {
+          id: 't1',
+          type: 'transition',
+          label: 'Fire',
+          x: 250,
+          y: 150,
+        },
+        {
+          id: 'a1',
+          type: 'arc',
+          label: '',
+          source: 'p1',
+          target: 't1',
+          weight: 2,
+        },
       ],
     });
 
@@ -28,9 +48,28 @@ describe('exportToPnml', () => {
   it('omits default markings and arc weights', () => {
     const xml = exportToPnml({
       elements: [
-        { id: 'p1', type: 'place', label: 'P1', x: 0, y: 0 },
-        { id: 't1', type: 'transition', label: 'T1', x: 0, y: 0 },
-        { id: 'a1', type: 'arc', label: '', source: 'p1', target: 't1', weight: 1 },
+        {
+          id: 'p1',
+          type: 'place',
+          label: 'P1',
+          x: 0,
+          y: 0,
+        },
+        {
+          id: 't1',
+          type: 'transition',
+          label: 'T1',
+          x: 0,
+          y: 0,
+        },
+        {
+          id: 'a1',
+          type: 'arc',
+          label: '',
+          source: 'p1',
+          target: 't1',
+          weight: 1,
+        },
       ],
     });
 

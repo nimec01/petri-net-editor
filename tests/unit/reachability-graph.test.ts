@@ -14,9 +14,15 @@ describe('reachability-graph', () => {
 
   it('builds a graph for a transfer net', () => {
     const net = buildNet(
-      [{ name: 'p1', tokens: 1 }, { name: 'p2' }],
+      [
+        { name: 'p1', tokens: 1 },
+        { name: 'p2' },
+      ],
       ['t1'],
-      [{ from: 'p1', to: 't1' }, { from: 't1', to: 'p2' }],
+      [
+        { from: 'p1', to: 't1' },
+        { from: 't1', to: 'p2' },
+      ],
     );
 
     const graph = buildReachabilityGraph(net);
@@ -34,20 +40,28 @@ describe('reachability-graph', () => {
       depth: 1,
       deadlock: true,
     });
-    expect(graph.edges).toEqual([{
-      id: 0,
-      source: 0,
-      target: 1,
-      transitionId: transitionId(net, 't1'),
-      transitionLabel: 't1',
-    }]);
+    expect(graph.edges).toEqual([
+      {
+        id: 0,
+        source: 0,
+        target: 1,
+        transitionId: transitionId(net, 't1'),
+        transitionLabel: 't1',
+      },
+    ]);
   });
 
   it('marks an initially deadlocked marking', () => {
     const net = buildNet(
-      [{ name: 'p1', tokens: 0 }, { name: 'p2' }],
+      [
+        { name: 'p1', tokens: 0 },
+        { name: 'p2' },
+      ],
       ['t1'],
-      [{ from: 'p1', to: 't1' }, { from: 't1', to: 'p2' }],
+      [
+        { from: 'p1', to: 't1' },
+        { from: 't1', to: 'p2' },
+      ],
     );
 
     const graph = buildReachabilityGraph(net);
@@ -59,29 +73,41 @@ describe('reachability-graph', () => {
 
   it('detects a self-loop transition that returns to the same marking', () => {
     const net = buildNet(
-      [{ name: 'p1', tokens: 1 }],
+      [
+        { name: 'p1', tokens: 1 },
+      ],
       ['t1'],
-      [{ from: 'p1', to: 't1' }, { from: 't1', to: 'p1' }],
+      [
+        { from: 'p1', to: 't1' },
+        { from: 't1', to: 'p1' },
+      ],
     );
 
     const graph = buildReachabilityGraph(net);
 
     expect(graph.nodes).toHaveLength(1);
     expect(graph.nodes[0]!.deadlock).toBe(false);
-    expect(graph.edges).toEqual([{
-      id: 0,
-      source: 0,
-      target: 0,
-      transitionId: transitionId(net, 't1'),
-      transitionLabel: 't1',
-    }]);
+    expect(graph.edges).toEqual([
+      {
+        id: 0,
+        source: 0,
+        target: 0,
+        transitionId: transitionId(net, 't1'),
+        transitionLabel: 't1',
+      },
+    ]);
   });
 
   it('honours the limit while building an unbounded net', () => {
     const net = buildNet(
-      [{ name: 'p1', tokens: 1 }],
+      [
+        { name: 'p1', tokens: 1 },
+      ],
       ['t1'],
-      [{ from: 'p1', to: 't1' }, { from: 't1', to: 'p1', weight: 2 }],
+      [
+        { from: 'p1', to: 't1' },
+        { from: 't1', to: 'p1', weight: 2 },
+      ],
     );
 
     const graph = buildReachabilityGraph(net, 3);
@@ -97,9 +123,14 @@ describe('reachability-graph', () => {
 
   it('expands the graph on demand via the builder', () => {
     const net = buildNet(
-      [{ name: 'p1', tokens: 1 }],
+      [
+        { name: 'p1', tokens: 1 },
+      ],
       ['t1'],
-      [{ from: 'p1', to: 't1' }, { from: 't1', to: 'p1', weight: 2 }],
+      [
+        { from: 'p1', to: 't1' },
+        { from: 't1', to: 'p1', weight: 2 },
+      ],
     );
 
     const builder = createReachabilityGraphBuilder(net, 3);
@@ -124,9 +155,15 @@ describe('reachability-graph', () => {
 
   it('reports complete for a finite reachability graph', () => {
     const net = buildNet(
-      [{ name: 'p1', tokens: 1 }, { name: 'p2' }],
+      [
+        { name: 'p1', tokens: 1 },
+        { name: 'p2' },
+      ],
       ['t1'],
-      [{ from: 'p1', to: 't1' }, { from: 't1', to: 'p2' }],
+      [
+        { from: 'p1', to: 't1' },
+        { from: 't1', to: 'p2' },
+      ],
     );
 
     const builder = createReachabilityGraphBuilder(net, 10);
@@ -138,9 +175,15 @@ describe('reachability-graph', () => {
 
   it('honours an explicitly provided initial marking', () => {
     const net = buildNet(
-      [{ name: 'p1' }, { name: 'p2' }],
+      [
+        { name: 'p1' },
+        { name: 'p2' },
+      ],
       ['t1'],
-      [{ from: 'p1', to: 't1' }, { from: 't1', to: 'p2' }],
+      [
+        { from: 'p1', to: 't1' },
+        { from: 't1', to: 'p2' },
+      ],
     );
 
     const builder = createReachabilityGraphBuilder(net, 10, { [placeId(net, 'p2')]: 1 });
@@ -153,7 +196,11 @@ describe('reachability-graph', () => {
 
   it('builds the full graph of a choice net', () => {
     const net = buildNet(
-      [{ name: 'p1', tokens: 1 }, { name: 'q' }, { name: 'r' }],
+      [
+        { name: 'p1', tokens: 1 },
+        { name: 'q' },
+        { name: 'r' },
+      ],
       ['t1', 't2'],
       [
         { from: 'p1', to: 't1' },
@@ -174,7 +221,11 @@ describe('reachability-graph', () => {
 
   it('builds the graph of a sequential net and tracks depth', () => {
     const net = buildNet(
-      [{ name: 'p1', tokens: 1 }, { name: 'p2' }, { name: 'p3' }],
+      [
+        { name: 'p1', tokens: 1 },
+        { name: 'p2' },
+        { name: 'p3' },
+      ],
       ['t1', 't2'],
       [
         { from: 'p1', to: 't1' },
@@ -194,7 +245,10 @@ describe('reachability-graph', () => {
 
   it('respects combined arc weights when deciding enabled transitions', () => {
     const net = buildNet(
-      [{ name: 'p1', tokens: 1 }, { name: 'p2' }],
+      [
+        { name: 'p1', tokens: 1 },
+        { name: 'p2' },
+      ],
       ['t1'],
       [
         { from: 'p1', to: 't1', weight: 1 },

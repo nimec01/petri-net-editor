@@ -14,9 +14,22 @@ test.describe('visualization', () => {
   test('zooms in and out via toolbar buttons', async ({ page }) => {
     await gotoEditor(page);
     await setupNet(page, {
-      places: [{ label: 'P1', tokens: 1, x: 100, y: 200 }, { label: 'P2', x: 600, y: 200 }],
-      transitions: [{ label: 'T1', x: 350, y: 200 }],
-      arcs: [{ from: 'P1', to: 'T1' }, { from: 'T1', to: 'P2' }],
+      places: [
+        {
+          label: 'P1',
+          tokens: 1,
+          x: 100,
+          y: 200,
+        },
+        { label: 'P2', x: 600, y: 200 },
+      ],
+      transitions: [
+        { label: 'T1', x: 350, y: 200 },
+      ],
+      arcs: [
+        { from: 'P1', to: 'T1' },
+        { from: 'T1', to: 'P2' },
+      ],
     });
 
     const initialZoom = (await netModel(page)).zoom;
@@ -32,9 +45,22 @@ test.describe('visualization', () => {
   test('fits the net to the screen', async ({ page }) => {
     await gotoEditor(page);
     await setupNet(page, {
-      places: [{ label: 'P1', tokens: 1, x: 100, y: 200 }, { label: 'P2', x: 600, y: 200 }],
-      transitions: [{ label: 'T1', x: 350, y: 200 }],
-      arcs: [{ from: 'P1', to: 'T1' }, { from: 'T1', to: 'P2' }],
+      places: [
+        {
+          label: 'P1',
+          tokens: 1,
+          x: 100,
+          y: 200,
+        },
+        { label: 'P2', x: 600, y: 200 },
+      ],
+      transitions: [
+        { label: 'T1', x: 350, y: 200 },
+      ],
+      arcs: [
+        { from: 'P1', to: 'T1' },
+        { from: 'T1', to: 'P2' },
+      ],
     });
 
     await page.getByTestId('zoom-in').click();
@@ -54,9 +80,22 @@ test.describe('visualization', () => {
   test('pans the canvas by dragging the background', async ({ page }) => {
     await gotoEditor(page);
     await setupNet(page, {
-      places: [{ label: 'P1', tokens: 1, x: 100, y: 200 }, { label: 'P2', x: 600, y: 200 }],
-      transitions: [{ label: 'T1', x: 350, y: 200 }],
-      arcs: [{ from: 'P1', to: 'T1' }, { from: 'T1', to: 'P2' }],
+      places: [
+        {
+          label: 'P1',
+          tokens: 1,
+          x: 100,
+          y: 200,
+        },
+        { label: 'P2', x: 600, y: 200 },
+      ],
+      transitions: [
+        { label: 'T1', x: 350, y: 200 },
+      ],
+      arcs: [
+        { from: 'P1', to: 'T1' },
+        { from: 'T1', to: 'P2' },
+      ],
     });
 
     const before = (await netModel(page)).pan;
@@ -71,9 +110,18 @@ test.describe('visualization', () => {
   test('applies a circle layout to the net', async ({ page }) => {
     await gotoEditor(page);
     await setupNet(page, {
-      places: [{ label: 'P1', x: 0, y: 0 }, { label: 'P2', x: 400, y: 0 }],
-      transitions: [{ label: 'T1', x: 800, y: 0 }, { label: 'T2', x: 1200, y: 0 }],
-      arcs: [{ from: 'P1', to: 'T1' }, { from: 'P1', to: 'T2' }],
+      places: [
+        { label: 'P1', x: 0, y: 0 },
+        { label: 'P2', x: 400, y: 0 },
+      ],
+      transitions: [
+        { label: 'T1', x: 800, y: 0 },
+        { label: 'T2', x: 1200, y: 0 },
+      ],
+      arcs: [
+        { from: 'P1', to: 'T1' },
+        { from: 'P1', to: 'T2' },
+      ],
     });
 
     const beforePositions = await Promise.all(
@@ -97,12 +145,20 @@ test.describe('visualization', () => {
     await gotoEditor(page);
     await setupNet(page, {
       places: [
-        { label: 'P1', tokens: 1, x: 100, y: 200 },
+        {
+          label: 'P1',
+          tokens: 1,
+          x: 100,
+          y: 200,
+        },
         { label: 'P2', x: 400, y: 200 },
         { label: 'P3', x: 700, y: 200 },
         { label: 'P4', x: 1000, y: 200 },
       ],
-      transitions: [{ label: 'T1', x: 250, y: 200 }, { label: 'T2', x: 850, y: 200 }],
+      transitions: [
+        { label: 'T1', x: 250, y: 200 },
+        { label: 'T2', x: 850, y: 200 },
+      ],
       arcs: [
         { from: 'P1', to: 'T1' },
         { from: 'T1', to: 'P2' },
@@ -134,9 +190,20 @@ test.describe('visualization', () => {
   test('shows labels for places and transitions in the properties panel', async ({ page }) => {
     await gotoEditor(page);
     await setupNet(page, {
-      places: [{ label: 'P1', tokens: 2, x: 100, y: 200 }],
-      transitions: [{ label: 'Fire', x: 400, y: 200 }],
-      arcs: [{ from: 'P1', to: 'Fire' }],
+      places: [
+        {
+          label: 'P1',
+          tokens: 2,
+          x: 100,
+          y: 200,
+        },
+      ],
+      transitions: [
+        { label: 'Fire', x: 400, y: 200 },
+      ],
+      arcs: [
+        { from: 'P1', to: 'Fire' },
+      ],
     });
 
     const selectNode = (id: string): Promise<void> => {

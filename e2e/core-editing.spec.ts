@@ -70,7 +70,13 @@ test.describe('core editing', () => {
 
   test('adds tokens to a place in token mode', async ({ page }) => {
     await gotoEditor(page);
-    await setupNet(page, { places: [{ label: 'P1' }], transitions: [], arcs: [] });
+    await setupNet(page, {
+      places: [
+        { label: 'P1' },
+      ],
+      transitions: [],
+      arcs: [],
+    });
 
     const id = await placeId(page, 'P1');
     await setMode(page, 'token');
@@ -85,8 +91,12 @@ test.describe('core editing', () => {
   test('creates an arc between a place and a transition', async ({ page }) => {
     await gotoEditor(page);
     await setupNet(page, {
-      places: [{ label: 'P1', x: 100, y: 200 }],
-      transitions: [{ label: 'T1', x: 400, y: 200 }],
+      places: [
+        { label: 'P1', x: 100, y: 200 },
+      ],
+      transitions: [
+        { label: 'T1', x: 400, y: 200 },
+      ],
       arcs: [],
     });
 
@@ -107,9 +117,22 @@ test.describe('core editing', () => {
   test('deletes a transition and its arcs in delete mode', async ({ page }) => {
     await gotoEditor(page);
     await setupNet(page, {
-      places: [{ label: 'P1', tokens: 1, x: 100, y: 200 }, { label: 'P2', x: 600, y: 200 }],
-      transitions: [{ label: 'T1', x: 350, y: 200 }],
-      arcs: [{ from: 'P1', to: 'T1' }, { from: 'T1', to: 'P2' }],
+      places: [
+        {
+          label: 'P1',
+          tokens: 1,
+          x: 100,
+          y: 200,
+        },
+        { label: 'P2', x: 600, y: 200 },
+      ],
+      transitions: [
+        { label: 'T1', x: 350, y: 200 },
+      ],
+      arcs: [
+        { from: 'P1', to: 'T1' },
+        { from: 'T1', to: 'P2' },
+      ],
     });
 
     const id = await transitionId(page, 'T1');
@@ -124,7 +147,13 @@ test.describe('core editing', () => {
 
   test('deletes a place from the properties panel', async ({ page }) => {
     await gotoEditor(page);
-    await setupNet(page, { places: [{ label: 'P1', x: 100, y: 200 }], transitions: [], arcs: [] });
+    await setupNet(page, {
+      places: [
+        { label: 'P1', x: 100, y: 200 },
+      ],
+      transitions: [],
+      arcs: [],
+    });
 
     const id = await placeId(page, 'P1');
     await setMode(page, 'select');
@@ -140,7 +169,13 @@ test.describe('core editing', () => {
 
   test('moves a place with drag and drop', async ({ page }) => {
     await gotoEditor(page);
-    await setupNet(page, { places: [{ label: 'P1', x: 100, y: 200 }], transitions: [], arcs: [] });
+    await setupNet(page, {
+      places: [
+        { label: 'P1', x: 100, y: 200 },
+      ],
+      transitions: [],
+      arcs: [],
+    });
 
     const id = await placeId(page, 'P1');
     const before = await nodePosition(page, id);
@@ -193,9 +228,20 @@ test.describe('core editing', () => {
   test('clears the entire net from the toolbar', async ({ page }) => {
     await gotoEditor(page);
     await setupNet(page, {
-      places: [{ label: 'P1', tokens: 1, x: 100, y: 200 }],
-      transitions: [{ label: 'T1', x: 400, y: 200 }],
-      arcs: [{ from: 'P1', to: 'T1' }],
+      places: [
+        {
+          label: 'P1',
+          tokens: 1,
+          x: 100,
+          y: 200,
+        },
+      ],
+      transitions: [
+        { label: 'T1', x: 400, y: 200 },
+      ],
+      arcs: [
+        { from: 'P1', to: 'T1' },
+      ],
     });
 
     page.on('dialog', dialog => dialog.accept());
