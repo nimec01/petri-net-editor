@@ -23,12 +23,37 @@ const emit = defineEmits<{
 }>();
 
 const editModes: { id: EditorMode; icon: Component; iconSize?: number; label: string }[] = [
-  { id: 'select', icon: defineAsyncComponent(() => import('~icons/tabler/pointer')), label: 'Select' },
-  { id: 'place', icon: defineAsyncComponent(() => import('~icons/tabler/point')), iconSize: 2.5, label: 'Place' },
-  { id: 'transition', icon: defineAsyncComponent(() => import('~icons/tabler/crop-portrait-filled')), label: 'Transition' },
-  { id: 'arc', icon: defineAsyncComponent(() => import('~icons/tabler/vector-spline')), label: 'Arc' },
-  { id: 'token', icon: defineAsyncComponent(() => import('~icons/tabler/point-filled')), label: 'Token' },
-  { id: 'delete', icon: defineAsyncComponent(() => import('~icons/tabler/eraser')), label: 'Delete' },
+  {
+    id: 'select',
+    icon: defineAsyncComponent(() => import('~icons/tabler/pointer')),
+    label: 'Select',
+  },
+  {
+    id: 'place',
+    icon: defineAsyncComponent(() => import('~icons/tabler/point')),
+    iconSize: 2.5,
+    label: 'Place',
+  },
+  {
+    id: 'transition',
+    icon: defineAsyncComponent(() => import('~icons/tabler/crop-portrait-filled')),
+    label: 'Transition',
+  },
+  {
+    id: 'arc',
+    icon: defineAsyncComponent(() => import('~icons/tabler/vector-spline')),
+    label: 'Arc',
+  },
+  {
+    id: 'token',
+    icon: defineAsyncComponent(() => import('~icons/tabler/point-filled')),
+    label: 'Token',
+  },
+  {
+    id: 'delete',
+    icon: defineAsyncComponent(() => import('~icons/tabler/eraser')),
+    label: 'Delete',
+  },
 ];
 
 const layoutOptions: { id: LayoutType; label: string }[] = [
@@ -38,7 +63,9 @@ const layoutOptions: { id: LayoutType; label: string }[] = [
 ];
 
 function toggleFireMode(currentMode: EditorMode) {
-  emit('update:activeMode', currentMode === 'fire' ? 'select' : 'fire');
+  emit('update:activeMode', currentMode === 'fire'
+    ? 'select'
+    : 'fire');
 }
 </script>
 

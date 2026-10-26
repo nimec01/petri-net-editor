@@ -107,7 +107,9 @@ interface TransitionSpec {
 
 export function normalizeLimit(value: number, fallback = DEFAULT_REACHABILITY_LIMIT): number {
   const normalized = Math.floor(value);
-  return Number.isFinite(normalized) && normalized >= 1 ? normalized : fallback;
+  return Number.isFinite(normalized) && normalized >= 1
+    ? normalized
+    : fallback;
 }
 
 function isEnabledAt(marking: Marking, pre: Marking): boolean {
@@ -244,7 +246,10 @@ function buildPaths(graph: ReachabilityGraphData): Map<number, PathStep[]> {
     const currentPath = paths.get(current)!;
     for (const edge of outgoing[current]!) {
       if (!paths.has(edge.target)) {
-        paths.set(edge.target, [...currentPath, { id: edge.transitionId, label: edge.transitionLabel }]);
+        paths.set(edge.target, [
+          ...currentPath,
+          { id: edge.transitionId, label: edge.transitionLabel },
+        ]);
         queue.push(edge.target);
       }
     }
@@ -253,7 +258,10 @@ function buildPaths(graph: ReachabilityGraphData): Map<number, PathStep[]> {
 }
 
 function markingsEqual(a: Marking, b: Marking): boolean {
-  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  const keys = new Set([
+    ...Object.keys(a),
+    ...Object.keys(b),
+  ]);
   for (const key of keys) {
     if ((a[key] || 0) !== (b[key] || 0)) {
       return false;
@@ -263,7 +271,10 @@ function markingsEqual(a: Marking, b: Marking): boolean {
 }
 
 function strictlyDominates(a: Marking, b: Marking): boolean {
-  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  const keys = new Set([
+    ...Object.keys(a),
+    ...Object.keys(b),
+  ]);
   let strictlyGreater = false;
   for (const key of keys) {
     const av = a[key] || 0;
@@ -319,8 +330,16 @@ function computeBoundedness(graph: ReachabilityGraphData, places: Place[], paths
         places: placeResults.map(result => ({ ...result, bounded: !increasedSet.has(result.id) })),
         provenUnbounded: true,
         witness: {
-          smaller: { nodeId: smaller.id, marking: { ...smaller.marking }, path: paths.get(smaller.id) ?? [] },
-          larger: { nodeId: larger.id, marking: { ...larger.marking }, path: paths.get(larger.id) ?? [] },
+          smaller: {
+            nodeId: smaller.id,
+            marking: { ...smaller.marking },
+            path: paths.get(smaller.id) ?? [],
+          },
+          larger: {
+            nodeId: larger.id,
+            marking: { ...larger.marking },
+            path: paths.get(larger.id) ?? [],
+          },
           increasedPlaceIds,
         },
       };

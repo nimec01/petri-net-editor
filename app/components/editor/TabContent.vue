@@ -10,8 +10,12 @@ const props = defineProps<{
 
 const tabId = computed(() => props.tab.id);
 
-const petriNet = computed(() => props.tab.type === 'petri-net' ? props.tab.petriNet : null);
-const extensions = computed(() => props.tab.type === 'petri-net' ? props.tab.extensions : null);
+const petriNet = computed(() => props.tab.type === 'petri-net'
+  ? props.tab.petriNet
+  : null);
+const extensions = computed(() => props.tab.type === 'petri-net'
+  ? props.tab.extensions
+  : null);
 
 const placeLabels = computed(() => {
   const labels: Record<string, string> = {};

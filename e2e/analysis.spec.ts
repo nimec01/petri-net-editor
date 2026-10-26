@@ -3,11 +3,19 @@ import { gotoEditor, openExtension, setupNet } from './helpers';
 
 const chainNet = {
   places: [
-    { label: 'P1', tokens: 1, x: 100, y: 200 },
+    {
+      label: 'P1',
+      tokens: 1,
+      x: 100,
+      y: 200,
+    },
     { label: 'P2', x: 400, y: 200 },
     { label: 'P3', x: 700, y: 200 },
   ],
-  transitions: [{ label: 'T1', x: 250, y: 200 }, { label: 'T2', x: 550, y: 200 }],
+  transitions: [
+    { label: 'T1', x: 250, y: 200 },
+    { label: 'T2', x: 550, y: 200 },
+  ],
   arcs: [
     { from: 'P1', to: 'T1' },
     { from: 'T1', to: 'P2' },
@@ -18,10 +26,18 @@ const chainNet = {
 
 const cycleNet = {
   places: [
-    { label: 'P1', tokens: 1, x: 100, y: 200 },
+    {
+      label: 'P1',
+      tokens: 1,
+      x: 100,
+      y: 200,
+    },
     { label: 'P2', x: 400, y: 200 },
   ],
-  transitions: [{ label: 'T1', x: 250, y: 200 }, { label: 'T2', x: 550, y: 200 }],
+  transitions: [
+    { label: 'T1', x: 250, y: 200 },
+    { label: 'T2', x: 550, y: 200 },
+  ],
   arcs: [
     { from: 'P1', to: 'T1' },
     { from: 'T1', to: 'P2' },
@@ -32,10 +48,17 @@ const cycleNet = {
 
 const unboundedNet = {
   places: [
-    { label: 'P1', tokens: 1, x: 100, y: 200 },
+    {
+      label: 'P1',
+      tokens: 1,
+      x: 100,
+      y: 200,
+    },
     { label: 'P2', x: 400, y: 200 },
   ],
-  transitions: [{ label: 'T1', x: 250, y: 200 }],
+  transitions: [
+    { label: 'T1', x: 250, y: 200 },
+  ],
   arcs: [
     { from: 'P1', to: 'T1' },
     { from: 'T1', to: 'P1' },

@@ -24,11 +24,15 @@ export class FakePetriNet implements IPetriNet {
   }
 
   getPlaces(): Place[] {
-    return [...this.placeRecords.values()].map(({ id, label, position }) => ({ id, label, position }));
+    return [
+      ...this.placeRecords.values(),
+    ].map(({ id, label, position }) => ({ id, label, position }));
   }
 
   getTransitions(): Transition[] {
-    return [...this.transitionRecords.values()].map(({ id, label, position }) => ({ id, label, position }));
+    return [
+      ...this.transitionRecords.values(),
+    ].map(({ id, label, position }) => ({ id, label, position }));
   }
 
   getArcs(): Arc[] {
@@ -123,7 +127,12 @@ export class FakePetriNet implements IPetriNet {
   addPlace(x: number, y: number, label?: string): Place {
     const id = this.nextId();
     const placeLabel = label ?? `P${this.placeRecords.size + 1}`;
-    const record: PlaceRecord = { id, label: placeLabel, position: { x, y }, tokens: 0 };
+    const record: PlaceRecord = {
+      id,
+      label: placeLabel,
+      position: { x, y },
+      tokens: 0,
+    };
     this.placeRecords.set(id, record);
     return this.toPlace(record);
   }
@@ -131,9 +140,17 @@ export class FakePetriNet implements IPetriNet {
   addTransition(x: number, y: number, label?: string): Transition {
     const id = this.nextId();
     const transitionLabel = label ?? `T${this.transitionRecords.size + 1}`;
-    const record: TransitionRecord = { id, label: transitionLabel, position: { x, y } };
+    const record: TransitionRecord = {
+      id,
+      label: transitionLabel,
+      position: { x, y },
+    };
     this.transitionRecords.set(id, record);
-    return { id, label: transitionLabel, position: { x, y } };
+    return {
+      id,
+      label: transitionLabel,
+      position: { x, y },
+    };
   }
 
   addArc(sourceId: string, targetId: string, weight?: number): Arc {
@@ -141,7 +158,9 @@ export class FakePetriNet implements IPetriNet {
       id: `a${this.sequence++}`,
       source: sourceId,
       target: targetId,
-      weight: weight && weight > 0 ? weight : 1,
+      weight: weight && weight > 0
+        ? weight
+        : 1,
     };
     this.arcRecords.push(arc);
     return { ...arc };

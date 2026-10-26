@@ -45,12 +45,16 @@ function createReachabilityGraphTab(sourceTab: PetriNetTab): ReachabilityGraphTa
 }
 
 export function useTabs() {
-  const tabs = shallowRef<Tab[]>([createPetriNetTab('Tab 1')]);
+  const tabs = shallowRef<Tab[]>([
+    createPetriNetTab('Tab 1'),
+  ]);
   const activeTabId = ref(tabs.value[0]!.id);
   const splitViewId = ref<string | null>(null);
 
   const activeTab = computed(() => tabs.value.find(t => t.id === activeTabId.value) ?? tabs.value[0]!);
-  const splitViewTab = computed(() => splitViewId.value ? tabs.value.find(t => t.id === splitViewId.value) ?? null : null);
+  const splitViewTab = computed(() => splitViewId.value
+    ? tabs.value.find(t => t.id === splitViewId.value) ?? null
+    : null);
 
   function addTab() {
     const tab = createPetriNetTab();
@@ -119,7 +123,9 @@ export function useTabs() {
     if (!tab)
       return;
     const renamed = { ...tab, name };
-    tabs.value = tabs.value.map(t => t.id === id ? renamed : t);
+    tabs.value = tabs.value.map(t => t.id === id
+      ? renamed
+      : t);
   }
 
   function switchTab(id: string) {
