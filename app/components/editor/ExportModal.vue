@@ -29,8 +29,12 @@ async function copyToClipboard() {
 }
 
 function download() {
-  const extension = format.value === 'json' ? 'json' : 'pnml';
-  const mimeType = format.value === 'json' ? 'application/json' : 'application/xml';
+  const extension = format.value === 'json'
+    ? 'json'
+    : 'pnml';
+  const mimeType = format.value === 'json'
+    ? 'application/json'
+    : 'application/xml';
   const blob = new Blob([currentJson.value], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

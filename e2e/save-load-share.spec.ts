@@ -3,10 +3,17 @@ import { gotoEditor, netModel, setupNet } from './helpers';
 
 const sampleNet = {
   places: [
-    { label: 'P1', tokens: 2, x: 100, y: 200 },
+    {
+      label: 'P1',
+      tokens: 2,
+      x: 100,
+      y: 200,
+    },
     { label: 'P2', x: 400, y: 200 },
   ],
-  transitions: [{ label: 'T1', x: 250, y: 200 }],
+  transitions: [
+    { label: 'T1', x: 250, y: 200 },
+  ],
   arcs: [
     { from: 'P1', to: 'T1' },
     { from: 'T1', to: 'P2' },
@@ -51,10 +58,17 @@ test.describe('save / load / share', () => {
     await gotoEditor(page);
     await setupNet(page, {
       places: [
-        { label: 'Input', tokens: 2, x: 100, y: 200 },
+        {
+          label: 'Input',
+          tokens: 2,
+          x: 100,
+          y: 200,
+        },
         { label: 'Output', x: 400, y: 200 },
       ],
-      transitions: [{ label: 'Process', x: 250, y: 200 }],
+      transitions: [
+        { label: 'Process', x: 250, y: 200 },
+      ],
       arcs: [
         { from: 'Input', to: 'Process', weight: 2 },
         { from: 'Process', to: 'Output' },

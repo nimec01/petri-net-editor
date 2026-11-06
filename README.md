@@ -99,7 +99,18 @@ FormData is supported as well — send the same JSON in a `net` field:
 
 ```js
 const form = new FormData();
-form.append('net', JSON.stringify({ elements: [{ id: 'p1', type: 'place', label: 'P1', tokens: 2, x: 100, y: 200 }] }));
+form.append('net', JSON.stringify({
+  elements: [
+    {
+      id: 'p1',
+      type: 'place',
+      label: 'P1',
+      tokens: 2,
+      x: 100,
+      y: 200
+    }
+  ]
+}));
 await fetch('/editor', { method: 'POST', body: form });
 ```
 

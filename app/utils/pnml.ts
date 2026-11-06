@@ -15,12 +15,16 @@ function elementText(element: Element, name: string): string {
 
 function numericAttribute(element: Element, name: string, fallback: number): number {
   const value = Number(element.getAttribute(name));
-  return Number.isFinite(value) ? value : fallback;
+  return Number.isFinite(value)
+    ? value
+    : fallback;
 }
 
 function positiveInteger(value: string, fallback: number): number {
   const parsed = Number.parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+  return Number.isInteger(parsed) && parsed > 0
+    ? parsed
+    : fallback;
 }
 
 export function exportToPnml(state: PetriNetState): string {
@@ -55,7 +59,11 @@ export function exportToPnml(state: PetriNetState): string {
   <net id="net0" type="http://www.pnml.org/version-2009/grammar/ptnet">
     <name><text>${escapeXml(state.title ?? 'Petri Net')}</text></name>
     <page id="${pageId}">
-${placeXml}${placeXml && (transitionXml || arcXml) ? '\n' : ''}${transitionXml}${transitionXml && arcXml ? '\n' : ''}${arcXml}
+${placeXml}${placeXml && (transitionXml || arcXml)
+  ? '\n'
+  : ''}${transitionXml}${transitionXml && arcXml
+  ? '\n'
+  : ''}${arcXml}
     </page>
   </net>
 </pnml>
@@ -76,25 +84,36 @@ export function importFromPnml(xml: string): PetriNetState {
 
   const elements: PetriNetElementData[] = [];
   const nodeIds = new Set<string>();
-  const nodes = [...net.getElementsByTagNameNS('*', 'place'), ...net.getElementsByTagNameNS('*', 'transition')];
+  const nodes = [
+    ...net.getElementsByTagNameNS('*', 'place'),
+    ...net.getElementsByTagNameNS('*', 'transition'),
+  ];
   for (const node of nodes) {
     const id = node.getAttribute('id')?.trim();
     if (!id || nodeIds.has(id)) {
       throw new Error('Invalid PNML: places and transitions must have unique IDs.');
     }
     nodeIds.add(id);
-    const type = node.localName === 'place' ? 'place' : 'transition';
+    const type = node.localName === 'place'
+      ? 'place'
+      : 'transition';
     const position = node.getElementsByTagNameNS('*', 'position')[0];
     const element: PetriNetElementData = {
       id,
       type,
       label: elementText(node, 'name') || id,
-      x: position ? numericAttribute(position, 'x', 0) : 0,
-      y: position ? numericAttribute(position, 'y', 0) : 0,
+      x: position
+        ? numericAttribute(position, 'x', 0)
+        : 0,
+      y: position
+        ? numericAttribute(position, 'y', 0)
+        : 0,
     };
     if (type === 'place') {
       const marking = elementText(node, 'initialMarking');
-      const tokens = marking ? Number.parseInt(marking, 10) : 0;
+      const tokens = marking
+        ? Number.parseInt(marking, 10)
+        : 0;
       if (Number.isInteger(tokens) && tokens > 0) {
         element.tokens = tokens;
       }
@@ -118,7 +137,9 @@ export function importFromPnml(xml: string): PetriNetState {
       label: '',
       source,
       target,
-      weight: inscription ? positiveInteger(inscription, 1) : 1,
+      weight: inscription
+        ? positiveInteger(inscription, 1)
+        : 1,
     });
   }
 

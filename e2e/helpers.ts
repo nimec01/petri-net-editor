@@ -75,9 +75,18 @@ export async function netModel(page: Page): Promise<NetModel> {
     const net = pn.petriNet.value!;
     const cy = pn.cy.value!;
     return {
-      places: net.getPlaces().map(place => ({ id: place.id, label: place.label, tokens: net.getTokens(place.id) })),
+      places: net.getPlaces().map(place => ({
+        id: place.id,
+        label: place.label,
+        tokens: net.getTokens(place.id),
+      })),
       transitions: net.getTransitions().map(transition => ({ id: transition.id, label: transition.label })),
-      arcs: net.getArcs().map(arc => ({ id: arc.id, source: arc.source, target: arc.target, weight: arc.weight })),
+      arcs: net.getArcs().map(arc => ({
+        id: arc.id,
+        source: arc.source,
+        target: arc.target,
+        weight: arc.weight,
+      })),
       enabledLabels: net.getEnabledTransitions().map(transition => transition.label),
       zoom: cy.zoom(),
       pan: { x: cy.pan().x, y: cy.pan().y },

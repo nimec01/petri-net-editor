@@ -10,44 +10,98 @@ const sections: ShortcutSection[] = [
   {
     heading: 'Tools',
     shortcuts: [
-      { keys: ['1'], description: 'Select' },
-      { keys: ['2'], description: 'Place' },
-      { keys: ['3'], description: 'Transition' },
-      { keys: ['4'], description: 'Arc' },
-      { keys: ['5'], description: 'Token' },
-      { keys: ['6'], description: 'Delete' },
+      {
+        keys: ['1'],
+        description: 'Select',
+      },
+      {
+        keys: ['2'],
+        description: 'Place',
+      },
+      {
+        keys: ['3'],
+        description: 'Transition',
+      },
+      {
+        keys: ['4'],
+        description: 'Arc',
+      },
+      {
+        keys: ['5'],
+        description: 'Token',
+      },
+      {
+        keys: ['6'],
+        description: 'Delete',
+      },
     ],
   },
   {
     heading: 'Editing',
     shortcuts: [
-      { keys: ['Delete'], description: 'Delete selected element' },
-      { keys: ['Ctrl', 'Z'], description: 'Undo' },
-      { keys: ['Ctrl', 'Shift', 'Z'], description: 'Redo' },
-      { keys: ['Ctrl', 'Y'], description: 'Redo' },
-      { keys: ['Ctrl', 'C'], description: 'Copy selection' },
-      { keys: ['Ctrl', 'V'], description: 'Paste' },
+      {
+        keys: ['Delete'],
+        description: 'Delete selected element',
+      },
+      {
+        keys: ['Ctrl', 'Z'],
+        description: 'Undo',
+      },
+      {
+        keys: ['Ctrl', 'Shift', 'Z'],
+        description: 'Redo',
+      },
+      {
+        keys: ['Ctrl', 'Y'],
+        description: 'Redo',
+      },
+      {
+        keys: ['Ctrl', 'C'],
+        description: 'Copy selection',
+      },
+      {
+        keys: ['Ctrl', 'V'],
+        description: 'Paste',
+      },
     ],
   },
   {
     heading: 'View',
     shortcuts: [
-      { keys: ['Ctrl', '+'], description: 'Zoom in' },
-      { keys: ['Ctrl', '-'], description: 'Zoom out' },
-      { keys: ['Ctrl', '0'], description: 'Fit to screen' },
+      {
+        keys: ['Ctrl', '+'],
+        description: 'Zoom in',
+      },
+      {
+        keys: ['Ctrl', '-'],
+        description: 'Zoom out',
+      },
+      {
+        keys: ['Ctrl', '0'],
+        description: 'Fit to screen',
+      },
     ],
   },
   {
     heading: 'Simulation',
     shortcuts: [
-      { keys: ['F'], description: 'Toggle fire mode' },
+      {
+        keys: ['F'],
+        description: 'Toggle fire mode',
+      },
     ],
   },
   {
     heading: 'Other',
     shortcuts: [
-      { keys: ['Esc'], description: 'Deselect / exit fire mode' },
-      { keys: ['?'], description: 'Show shortcuts' },
+      {
+        keys: ['Esc'],
+        description: 'Deselect / exit fire mode',
+      },
+      {
+        keys: ['?'],
+        description: 'Show shortcuts',
+      },
     ],
   },
 ];

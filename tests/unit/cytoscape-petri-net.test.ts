@@ -3,7 +3,10 @@ import { createCytoscapePetriNet } from '../helpers/cytoscape-net';
 
 function buildTransferNet(tokens = 1) {
   const { net, ids } = createCytoscapePetriNet(
-    [{ name: 'p1', tokens }, { name: 'p2' }],
+    [
+      { name: 'p1', tokens },
+      { name: 'p2' },
+    ],
     ['t1'],
     [
       { from: 'p1', to: 't1' },
@@ -24,7 +27,13 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
 
     expect(net.getPlaces().map(place => place.id)).toEqual([p1, p2]);
     expect(net.getPlaces().map(place => place.label)).toEqual(['p1', 'p2']);
-    expect(net.getTransitions()).toEqual([{ id: t1, label: 't1', position: { x: 0, y: 0 } }]);
+    expect(net.getTransitions()).toEqual([
+      {
+        id: t1,
+        label: 't1',
+        position: { x: 0, y: 0 },
+      },
+    ]);
 
     const arcs = net.getArcs();
     expect(arcs).toHaveLength(2);
@@ -33,9 +42,19 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
   });
 
   it('reports node positions', () => {
-    const { net, cy } = createCytoscapePetriNet([{ name: 'p1' }], [], []);
-    cy.add({ group: 'nodes', data: { id: 'px', type: 'place', label: 'Px' }, position: { x: 5, y: 6 } });
-    cy.add({ group: 'nodes', data: { id: 'px-inner', parent: 'px', tokens: 0 }, position: { x: 5, y: 6 } });
+    const { net, cy } = createCytoscapePetriNet([
+      { name: 'p1' },
+    ], [], []);
+    cy.add({
+      group: 'nodes',
+      data: { id: 'px', type: 'place', label: 'Px' },
+      position: { x: 5, y: 6 },
+    });
+    cy.add({
+      group: 'nodes',
+      data: { id: 'px-inner', parent: 'px', tokens: 0 },
+      position: { x: 5, y: 6 },
+    });
 
     const px = net.getPlaces().find(place => place.label === 'Px')!;
     expect(px.position).toEqual({ x: 5, y: 6 });
@@ -87,7 +106,9 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
 
   it('aggregates weights of parallel arcs in the pre marking', () => {
     const { net, ids } = createCytoscapePetriNet(
-      [{ name: 'p1', tokens: 3 }],
+      [
+        { name: 'p1', tokens: 3 },
+      ],
       ['t1'],
       [
         { from: 'p1', to: 't1', weight: 2 },
@@ -102,7 +123,10 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
 
   it('ignores arcs whose source or target is a transition in pre/post markings', () => {
     const { net, ids } = createCytoscapePetriNet(
-      [{ name: 'p1', tokens: 1 }, { name: 'p2' }],
+      [
+        { name: 'p1', tokens: 1 },
+        { name: 'p2' },
+      ],
       ['t1', 't2'],
       [
         { from: 't1', to: 't2' },
@@ -121,9 +145,13 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
 
   it('does not enable a transition without input arcs', () => {
     const { net, ids } = createCytoscapePetriNet(
-      [{ name: 'p1', tokens: 1 }],
+      [
+        { name: 'p1', tokens: 1 },
+      ],
       ['t1'],
-      [{ from: 't1', to: 'p1' }],
+      [
+        { from: 't1', to: 'p1' },
+      ],
     );
     const t1 = ids.get('t1')!;
 
@@ -132,9 +160,13 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
 
   it('only enables a transition when tokens satisfy the arc weights', () => {
     const { net, ids } = createCytoscapePetriNet(
-      [{ name: 'p1', tokens: 1 }],
+      [
+        { name: 'p1', tokens: 1 },
+      ],
       ['t1'],
-      [{ from: 'p1', to: 't1', weight: 2 }],
+      [
+        { from: 'p1', to: 't1', weight: 2 },
+      ],
     );
     const p1 = ids.get('p1')!;
     const t1 = ids.get('t1')!;
@@ -146,7 +178,11 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
 
   it('getEnabledTransitions only returns enabled transitions', () => {
     const { net, ids } = createCytoscapePetriNet(
-      [{ name: 'p1', tokens: 1 }, { name: 'q' }, { name: 'r' }],
+      [
+        { name: 'p1', tokens: 1 },
+        { name: 'q' },
+        { name: 'r' },
+      ],
       ['t1', 't2'],
       [
         { from: 'p1', to: 't1' },
@@ -190,7 +226,10 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
 
   it('consumes and produces the exact weighted token counts', () => {
     const { net, ids } = createCytoscapePetriNet(
-      [{ name: 'p1', tokens: 4 }, { name: 'p2' }],
+      [
+        { name: 'p1', tokens: 4 },
+        { name: 'p2' },
+      ],
       ['t1'],
       [
         { from: 'p1', to: 't1', weight: 2 },
@@ -212,7 +251,10 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
 
     const place = net.addPlace(10, 20, 'custom');
 
-    expect(place).toMatchObject({ label: 'custom', position: { x: 10, y: 20 } });
+    expect(place).toMatchObject({
+      label: 'custom',
+      position: { x: 10, y: 20 },
+    });
     expect(net.getPlaces().map(p => p.id)).toEqual([place.id]);
     expect(net.getTokens(place.id)).toBe(0);
     expect(cy.getElementById(place.id).children().length).toBe(1);
@@ -234,7 +276,10 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
     const t1 = net.addTransition(5, 6, 'custom');
     const t2 = net.addTransition(0, 0);
 
-    expect(t1).toMatchObject({ label: 'custom', position: { x: 5, y: 6 } });
+    expect(t1).toMatchObject({
+      label: 'custom',
+      position: { x: 5, y: 6 },
+    });
     expect(t2.label).toBe('T2');
     expect(net.getTransitions().map(transition => transition.id)).toEqual([t1.id, t2.id]);
   });

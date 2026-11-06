@@ -12,11 +12,19 @@ import {
 
 const chainNet = {
   places: [
-    { label: 'P1', tokens: 1, x: 100, y: 200 },
+    {
+      label: 'P1',
+      tokens: 1,
+      x: 100,
+      y: 200,
+    },
     { label: 'P2', x: 400, y: 200 },
     { label: 'P3', x: 700, y: 200 },
   ],
-  transitions: [{ label: 'T1', x: 250, y: 200 }, { label: 'T2', x: 550, y: 200 }],
+  transitions: [
+    { label: 'T1', x: 250, y: 200 },
+    { label: 'T2', x: 550, y: 200 },
+  ],
   arcs: [
     { from: 'P1', to: 'T1' },
     { from: 'T1', to: 'P2' },
@@ -47,12 +55,20 @@ test.describe('simulation', () => {
     await gotoEditor(page);
     await setupNet(page, {
       places: [
-        { label: 'P1', tokens: 1, x: 100, y: 200 },
+        {
+          label: 'P1',
+          tokens: 1,
+          x: 100,
+          y: 200,
+        },
         { label: 'P2', x: 400, y: 200 },
         { label: 'P3', x: 700, y: 200 },
         { label: 'P4', x: 1000, y: 200 },
       ],
-      transitions: [{ label: 'T1', x: 250, y: 200 }, { label: 'T2', x: 850, y: 200 }],
+      transitions: [
+        { label: 'T1', x: 250, y: 200 },
+        { label: 'T2', x: 850, y: 200 },
+      ],
       arcs: [
         { from: 'P1', to: 'T1' },
         { from: 'T1', to: 'P2' },
@@ -104,9 +120,21 @@ test.describe('simulation', () => {
   test('fires a chosen number of steps with the Go button', async ({ page }) => {
     await gotoEditor(page);
     await setupNet(page, {
-      places: [{ label: 'P1', tokens: 3, x: 100, y: 200 }],
-      transitions: [{ label: 'T1', x: 400, y: 200 }],
-      arcs: [{ from: 'P1', to: 'T1' }, { from: 'T1', to: 'P1' }],
+      places: [
+        {
+          label: 'P1',
+          tokens: 3,
+          x: 100,
+          y: 200,
+        },
+      ],
+      transitions: [
+        { label: 'T1', x: 400, y: 200 },
+      ],
+      arcs: [
+        { from: 'P1', to: 'T1' },
+        { from: 'T1', to: 'P1' },
+      ],
     });
 
     await setMode(page, 'fire');
