@@ -30,7 +30,7 @@
   "devEngines": {
     "runtime": {
       "name": "node",
-      "version": "24.22.0",
+      "version": "24.22.2",
       "onFail": "download"
     }
   },
@@ -49,7 +49,7 @@
     "lint:fix": "eslint --fix"
   },
   "dependencies": {
-    "@tailwindcss/vite": "4.3.3",
+    "@tailwindcss/vite": "4.3.4",
     "@types/katex": "0.16.8",
     "cytoscape": "3.34.4",
     "cytoscape-dagre": "4.0.1",
@@ -57,23 +57,23 @@
     "daisyui": "5.7.50",
     "fflate": "0.8.3",
     "katex": "0.19.1",
-    "nuxt": "4.6.3",
-    "tailwindcss": "4.3.3",
+    "nuxt": "4.6.4",
+    "tailwindcss": "4.3.4",
     "vue": "3.5.44",
     "vue-router": "5.4.0"
   },
   "devDependencies": {
     "@antfu/eslint-config": "10.0.0",
     "@changesets/cli": "3.0.3",
-    "@iconify/json": "2.2.545",
+    "@iconify/json": "2.2.553",
     "@playwright/test": "1.64.1",
-    "@types/node": "26.6.5",
-    "eslint": "10.13.0",
+    "@types/node": "26.6.6",
+    "eslint": "10.14.0",
     "typescript": "6.0.3",
     "unplugin-icons": "24.0.0",
     "unplugin-vue-components": "32.1.0",
-    "vitest": "5.0.5",
-    "vue-tsc": "3.3.13",
-    "wrangler": "4.151.2"
+    "vitest": "5.1.0",
+    "vue-tsc": "3.3.14",
+    "wrangler": "4.157.0"
   }
 }
