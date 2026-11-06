@@ -13,7 +13,9 @@ async function readNetState(event: H3Event): Promise<PetriNetState | null> {
 
   const body = await readBody(event) as Record<string, unknown> | undefined;
   const net = body?.net;
-  return typeof net === 'string' ? parseNetState(net) : parseNetState(body);
+  return typeof net === 'string'
+    ? parseNetState(net)
+    : parseNetState(body);
 }
 
 export default defineEventHandler(async (event) => {

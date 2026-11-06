@@ -65,7 +65,9 @@ export function parseNetState(body: unknown): PetriNetState | null {
   }
 
   const parsed = candidate as PostLoadBody;
-  const state = (Array.isArray(parsed.elements) ? parsed : parsed.net) as PetriNetState | undefined;
+  const state = (Array.isArray(parsed.elements)
+    ? parsed
+    : parsed.net) as PetriNetState | undefined;
   if (!state || !Array.isArray(state.elements)) {
     return null;
   }

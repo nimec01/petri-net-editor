@@ -49,7 +49,9 @@ function handleImport() {
   } catch (cause) {
     error.value = format.value === 'json'
       ? 'Invalid JSON. Please check the input.'
-      : cause instanceof Error ? cause.message : 'Invalid PNML. Please check the input.';
+      : cause instanceof Error
+        ? cause.message
+        : 'Invalid PNML. Please check the input.';
   }
 }
 

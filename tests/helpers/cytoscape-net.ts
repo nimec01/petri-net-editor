@@ -24,7 +24,10 @@ export function createCytoscapePetriNet(
   transitions: string[],
   arcs: ArcSpec[],
 ): CytoscapeNet {
-  const cy = cytoscape({ style: [], layout: { name: 'preset' } });
+  const cy = cytoscape({
+    style: [],
+    layout: { name: 'preset' },
+  });
   const ids = new Map<string, string>();
 
   for (const place of places) {
@@ -64,5 +67,9 @@ export function createCytoscapePetriNet(
     });
   }
 
-  return { net: new CytoscapePetriNet(cy), cy, ids };
+  return {
+    net: new CytoscapePetriNet(cy),
+    cy,
+    ids,
+  };
 }

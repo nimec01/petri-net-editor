@@ -48,7 +48,9 @@ export class CytoscapePetriNet implements IPetriNet {
     const marking: Marking = {};
     this.cy.nodes('[type="place"]').forEach((node) => {
       const inner = node.children().first();
-      marking[node.id()] = inner.length > 0 ? (inner.data('tokens') || 0) : 0;
+      marking[node.id()] = inner.length > 0
+        ? (inner.data('tokens') || 0)
+        : 0;
     });
     return marking;
   }
@@ -197,7 +199,11 @@ export class CytoscapePetriNet implements IPetriNet {
       position: { x, y },
     });
 
-    return { id, label: placeLabel, position: { x, y } };
+    return {
+      id,
+      label: placeLabel,
+      position: { x, y },
+    };
   }
 
   addTransition(x: number, y: number, label?: string): Transition {
@@ -210,19 +216,36 @@ export class CytoscapePetriNet implements IPetriNet {
       position: { x, y },
     });
 
-    return { id, label: transitionLabel, position: { x, y } };
+    return {
+      id,
+      label: transitionLabel,
+      position: { x, y },
+    };
   }
 
   addArc(sourceId: string, targetId: string, weight?: number): Arc {
     const id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const arcWeight = weight && weight > 0 ? weight : 1;
+    const arcWeight = weight && weight > 0
+      ? weight
+      : 1;
 
     this.cy.add({
       group: 'edges',
-      data: { id, type: 'arc', source: sourceId, target: targetId, weight: arcWeight },
+      data: {
+        id,
+        type: 'arc',
+        source: sourceId,
+        target: targetId,
+        weight: arcWeight,
+      },
     });
 
-    return { id, source: sourceId, target: targetId, weight: arcWeight };
+    return {
+      id,
+      source: sourceId,
+      target: targetId,
+      weight: arcWeight,
+    };
   }
 
   removeElement(id: string): void {

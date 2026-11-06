@@ -117,7 +117,9 @@ function renderGraph() {
     const label = formatMarking(node.marking, orderedPlaceIds);
     const width = Math.min(190, Math.max(56, label.length * 6 + 16));
     const classes = [
-      node.id === 0 ? 'initial' : '',
+      node.id === 0
+        ? 'initial'
+        : '',
       node.deadlock ? 'deadlock' : '',
     ].filter(Boolean).join(' ');
     return {

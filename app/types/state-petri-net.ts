@@ -15,12 +15,25 @@ export class StatePetriNet implements IPetriNet {
 
     for (const el of state.elements) {
       if (el.type === 'place') {
-        this.places.push({ id: el.id, label: el.label, position: { x: el.x ?? 0, y: el.y ?? 0 } });
+        this.places.push({
+          id: el.id,
+          label: el.label,
+          position: { x: el.x ?? 0, y: el.y ?? 0 },
+        });
         this.marking[el.id] = el.tokens ?? 0;
       } else if (el.type === 'transition') {
-        this.transitions.push({ id: el.id, label: el.label, position: { x: el.x ?? 0, y: el.y ?? 0 } });
+        this.transitions.push({
+          id: el.id,
+          label: el.label,
+          position: { x: el.x ?? 0, y: el.y ?? 0 },
+        });
       } else if (el.type === 'arc') {
-        this.arcs.push({ id: el.id, source: el.source!, target: el.target!, weight: el.weight ?? 1 });
+        this.arcs.push({
+          id: el.id,
+          source: el.source!,
+          target: el.target!,
+          weight: el.weight ?? 1,
+        });
       }
     }
   }
