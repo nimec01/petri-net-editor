@@ -1,4 +1,4 @@
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ COPY . .
 RUN NITRO_PRESET=node-server pnpm build
 
 
-FROM node:24-alpine AS run
+FROM node:26-alpine AS run
 
 WORKDIR /app
 
