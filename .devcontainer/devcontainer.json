@@ -4,7 +4,6 @@
     "dockerfile": "Dockerfile"
   },
   "mounts": [
-    "source=${localEnv:HOME}/.config/opencode/github_token.txt,target=/root/.config/opencode/github_token.txt,type=bind,readonly",
     "source=${localEnv:HOME}/.gitconfig.github,target=/root/.gitconfig.github,type=bind,readonly"
   ],
   "features": {
@@ -122,9 +121,7 @@
       }
     }
   },
-  "forwardPorts": [
-    3000
-  ],
+  "forwardPorts": [3000],
   "portsAttributes": {
     "3000": {
       "label": "Frontend (Nuxt.js)",
