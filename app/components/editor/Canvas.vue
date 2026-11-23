@@ -19,7 +19,8 @@ onMounted(() => {
   if (!container.value)
     return;
   props.petriNet.initCy(container.value);
-  handleHashChange();
+  // Temporary workaround for https://github.com/nuxt/nuxt/issues/34651
+  setTimeout(handleHashChange, 10);
   window.addEventListener('hashchange', handleHashChange);
 
   let initialFit = true;
