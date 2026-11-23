@@ -10,10 +10,19 @@ shellEmulator: true
 
 overrides:
   '@nuxt/cli@4.0.1': 4.0.3
+  brace-expansion@>=4.0.0 <5.0.12: ^5.0.12
 
   brace-expansion@>=4.0.0 <5.0.8: ^5.0.8
   brace-expansion@>=4.0.0 <5.0.9: ^5.0.9
+  glob@>=9.0.0 <=14.0.1: ^14.0.2
+  katex@>=0.11.0 <0.18.2: ^0.18.2
+  launch-editor@<=2.14.1: ^2.14.2
+  minimatch@>=7.0.0 <11.0.1: ^11.0.1
   nanoid@<3.3.18: ^3.3.18
+  node-forge@<=1.4.2: ^1.4.3
+  postcss-selector-parser@>=7.0.0 <7.1.6: ^7.1.6
+  serialize-javascript@<7.1.3: ^7.1.3
+  shell-quote@>=1.8.4 <1.11.0: ^1.11.0
 
 allowBuilds:
   '@parcel/watcher': false
