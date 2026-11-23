@@ -1437,7 +1437,9 @@ export function usePetriNet() {
     const state = decodeState(hash);
     if (!state)
       return false;
-    importFromJson(state);
+    if (JSON.stringify(exportToJson()) !== JSON.stringify(state)) {
+      importFromJson(state);
+    }
     return true;
   }
 
