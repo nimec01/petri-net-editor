@@ -9,13 +9,18 @@ const props = withDefaults(defineProps<{
 const container = ref<HTMLElement | null>(null);
 const mode = props.petriNet.mode;
 
+function handleHashChange() {
+  if (props.loadFromUrl) {
+    props.petriNet.loadFromUrl();
+  }
+}
+
 onMounted(() => {
   if (!container.value)
     return;
   props.petriNet.initCy(container.value);
-  if (props.loadFromUrl) {
-    props.petriNet.loadFromUrl();
-  }
+  handleHashChange();
+  window.addEventListener('hashchange', handleHashChange);
 
   let initialFit = true;
   const ro = new ResizeObserver(() => {
@@ -28,6 +33,10 @@ onMounted(() => {
     }
   });
   ro.observe(container.value);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('hashchange', handleHashChange);
 });
 </script>
 
