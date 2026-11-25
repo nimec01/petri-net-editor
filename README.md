@@ -23,7 +23,7 @@ Built with [Nuxt](https://nuxt.com/) 4, Vue 3, TypeScript, [Cytoscape.js](https:
 
 ## Deployment
 
-A preview of the editor is available at <https://nimec01.github.io/petri-net-editor/editor/>
+A preview of the editor is available at <https://nimec01.github.io/petri-net-editor/editor/>.
 
 You can also self-host the application using Docker.
 
