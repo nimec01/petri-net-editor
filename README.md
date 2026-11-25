@@ -23,7 +23,9 @@ Built with [Nuxt](https://nuxt.com/) 4, Vue 3, TypeScript, [Cytoscape.js](https:
 
 ## Deployment
 
-There is currently **no public instance** available. You can self-host the application using Docker.
+A preview of the editor is available at <https://nimec01.github.io/petri-net-editor/editor/>.
+
+You can also self-host the application using Docker.
 
 ```bash
 docker run -p 3000:3000 ghcr.io/nimec01/petri-net-editor:latest
