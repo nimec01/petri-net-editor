@@ -4,7 +4,7 @@ export interface Place {
   id: string;
   label: string;
   position: { x: number; y: number };
-  capacity?: unknown;
+  capacity?: number;
 }
 
 export interface Transition {

@@ -97,6 +97,12 @@ function setMode(m: EditorMode) {
           Dismiss
         </button>
       </div>
+      <div v-if="petriNet!.importWarnings.value.length" class="absolute bottom-4 left-4 z-10 alert alert-warning" role="alert">
+        <span>{{ petriNet!.importWarnings.value.join(' ') }}</span>
+        <button class="btn btn-sm" @click="petriNet!.importWarnings.value = []">
+          Dismiss
+        </button>
+      </div>
 
       <div v-if="petriNet!.mode.value === 'fire'" class="absolute top-4 left-4 z-10">
         <EditorFireHistory

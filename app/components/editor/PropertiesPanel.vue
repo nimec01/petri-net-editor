@@ -33,9 +33,7 @@ watch(
       localWeight.value = el.weight ?? 1;
       localCapacity.value = el.capacity === undefined
         ? ''
-        : typeof el.capacity === 'string'
-          ? el.capacity
-          : JSON.stringify(el.capacity);
+        : String(el.capacity);
       capacityInputError.value = '';
     }
   },

@@ -1,6 +1,6 @@
 import type { PetriNetState } from '~/types/petri-net';
 import type { Arc, IPetriNet, Marking, Place, Transition } from '~/types/petri-net-core';
-import { isEnabledAt } from '~/utils/capacity';
+import { isEnabledAt, UNBOUNDED_CAPACITY } from '~/utils/capacity';
 
 export class StatePetriNet implements IPetriNet {
   private places: Place[];
@@ -20,7 +20,7 @@ export class StatePetriNet implements IPetriNet {
           id: el.id,
           label: el.label,
           position: { x: el.x ?? 0, y: el.y ?? 0 },
-          capacity: el.capacity,
+          capacity: el.capacity ?? UNBOUNDED_CAPACITY,
         });
         this.marking[el.id] = el.tokens ?? 0;
       } else if (el.type === 'transition') {

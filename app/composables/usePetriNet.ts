@@ -6,7 +6,7 @@ import dagre from 'cytoscape-dagre';
 import { computed, ref, shallowRef } from 'vue';
 import { FORMAT_VERSION } from '~/constants';
 import { CytoscapePetriNet } from '~/types/cytoscape-petri-net';
-import { isNonNegativeInteger, placeCapacityError, validateMarkings } from '~/utils/capacity';
+import { isNonNegativeInteger, normalizeImportedCapacities, placeCapacityError, validateMarkings } from '~/utils/capacity';
 import { decodeState, encodeState } from '~/utils/share';
 
 cytoscape.use(dagre);
@@ -160,6 +160,7 @@ export function usePetriNet() {
   const layoutType = ref<LayoutType>('dagre');
   const hasInvalidPlaces = ref(false);
   const importError = ref('');
+  const importWarnings = ref<string[]>([]);
 
   watch(mode, (newMode, oldMode) => {
     if (newMode === 'fire' && hasInvalidPlaces.value) {
@@ -971,7 +972,7 @@ export function usePetriNet() {
     const place = cy.value?.getElementById(id);
     if (!place || place.length === 0 || place.data('type') !== 'place' || (capacity !== undefined && !isNonNegativeInteger(capacity)))
       return;
-    const previousCapacity: unknown = place.data('capacity');
+    const previousCapacity = place.data('capacity') as number | undefined;
     if (capacity === undefined)
       place.removeData('capacity');
     else
@@ -1277,7 +1278,7 @@ export function usePetriNet() {
         ? (wrapperToTokens.get(ele.id()) ?? 0)
         : ele.data('tokens') as number | undefined;
       const weight = ele.data('weight') as number | undefined;
-      const capacity: unknown = ele.data('capacity');
+      const capacity = ele.data('capacity') as number | undefined;
       elements.push({
         id: ele.id(),
         type: ele.data('type'),
@@ -1314,6 +1315,11 @@ export function usePetriNet() {
       pendingState = state;
       return;
     }
+
+    const warnings: string[] = [];
+    state = normalizeImportedCapacities(state, warnings);
+    importError.value = '';
+    importWarnings.value = warnings;
 
     const formatVersion = state.formatVersion ?? 0;
     if (formatVersion > FORMAT_VERSION) {
@@ -1626,6 +1632,7 @@ export function usePetriNet() {
     isNetEmpty,
     hasInvalidPlaces,
     importError,
+    importWarnings,
     clearNet,
     destroy,
   };

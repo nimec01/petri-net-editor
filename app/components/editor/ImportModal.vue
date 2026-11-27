@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PetriNetState } from '~/types/petri-net';
 import IconFileUpload from '~icons/tabler/file-upload';
-import { validateMarkings } from '~/utils/capacity';
+import { normalizeImportedCapacities, validateMarkings } from '~/utils/capacity';
 import { importFromPnml } from '~/utils/pnml';
 
 const emit = defineEmits<{
@@ -50,13 +50,14 @@ function handleImport() {
   }
   try {
     const importWarnings: string[] = [];
-    const state = format.value === 'pnml'
+    const rawState = format.value === 'pnml'
       ? importFromPnml(jsonText.value, importWarnings)
       : JSON.parse(jsonText.value) as PetriNetState;
-    if (!state.elements || !Array.isArray(state.elements)) {
+    if (!rawState || !Array.isArray(rawState.elements)) {
       error.value = 'Invalid format: missing "elements" array.';
       return;
     }
+    const state = normalizeImportedCapacities(rawState, importWarnings);
     validateMarkings(state);
     if (format.value === 'json' && state.elements.some(element => element.type !== 'place' && element.capacity !== undefined))
       importWarnings.push('Capacity data on non-place elements could not be preserved.');

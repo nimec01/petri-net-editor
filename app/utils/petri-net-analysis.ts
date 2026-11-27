@@ -1,6 +1,6 @@
 import type { IPetriNet, Marking, Place } from '~/types/petri-net-core';
 import type { ReachabilityEdge, ReachabilityGraphData } from '~/utils/reachability-graph';
-import { isEnabledAt } from '~/utils/capacity';
+import { isEnabledAt, UNBOUNDED_CAPACITY } from '~/utils/capacity';
 import { createReachabilityGraphBuilder, DEFAULT_REACHABILITY_LIMIT } from '~/utils/reachability-graph';
 
 export interface TransitionLiveness {
@@ -306,7 +306,7 @@ function computeReachability(graph: ReachabilityGraphData, target: Marking, path
 
 function computeBoundedness(graph: ReachabilityGraphData, places: Place[], paths: Map<number, PathStep[]>): BoundednessAnalysis {
   const placeResults = computeMaxTokens(graph, places);
-  const cappedPlaces = places.filter(place => place.capacity !== undefined);
+  const cappedPlaces = places.filter(place => place.capacity !== undefined && place.capacity !== UNBOUNDED_CAPACITY);
 
   for (let i = 0; i < graph.nodes.length; i++) {
     for (let j = 0; j < graph.nodes.length; j++) {

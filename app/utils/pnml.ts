@@ -1,5 +1,5 @@
 import type { PetriNetElementData, PetriNetState } from '~/types/petri-net';
-import { isNonNegativeInteger } from '~/utils/capacity';
+import { importCapacity, isNonNegativeInteger } from '~/utils/capacity';
 
 function escapeXml(value: string): string {
   return value
@@ -141,20 +141,24 @@ export function importFromPnml(xml: string, warnings: string[] = []): PetriNetSt
         element.tokens = tokens;
       }
       const capacityNodes = Array.from(node.getElementsByTagNameNS('*', 'capacity'));
+      let foundCapacity = false;
       for (const capacityNode of capacityNodes) {
         const tool = capacityNode.parentElement;
-        if (tool?.localName === 'toolspecific' && tool.getAttribute('tool') === 'petri-net-editor' && tool.getAttribute('version') === '1' && element.capacity === undefined) {
+        if (tool?.localName === 'toolspecific' && tool.getAttribute('tool') === 'petri-net-editor' && tool.getAttribute('version') === '1' && !foundCapacity) {
+          foundCapacity = true;
           const value = capacityNode.textContent ?? '';
           if (capacityNode.getAttribute('encoding') !== 'json') {
-            element.capacity = value;
+            importCapacity(undefined, element.label, warnings);
             if (!warnings.includes(capacityWarning))
               warnings.push(capacityWarning);
           } else {
+            let parsed: unknown;
             try {
-              element.capacity = JSON.parse(value) as unknown;
+              parsed = JSON.parse(value) as unknown;
             } catch {
-              element.capacity = value;
+              parsed = value;
             }
+            element.capacity = importCapacity(parsed, element.label, warnings);
           }
         } else if (!warnings.includes(capacityWarning)) {
           warnings.push(capacityWarning);
