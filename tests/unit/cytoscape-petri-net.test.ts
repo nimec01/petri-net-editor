@@ -155,7 +155,7 @@ describe('cytoscape petri net (IPetriNet implementation)', () => {
     );
     const t1 = ids.get('t1')!;
 
-    expect(net.isTransitionEnabled(t1)).toBe(false);
+    expect(net.isTransitionEnabled(t1)).toBe(true);
   });
 
   it('only enables a transition when tokens satisfy the arc weights', () => {

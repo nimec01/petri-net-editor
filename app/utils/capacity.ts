@@ -16,8 +16,10 @@ export function placeCapacityError(capacity: unknown, tokens: number): string | 
 }
 
 export function isEnabledAt(places: Place[], marking: Marking, pre: Marking, post: Marking): boolean {
-  if (Object.keys(pre).length === 0 || !places.every(place => !placeCapacityError(place.capacity, marking[place.id] ?? 0)))
+  if ((Object.keys(pre).length === 0 && Object.keys(post).length === 0)
+    || !places.every(place => !placeCapacityError(place.capacity, marking[place.id] ?? 0))) {
     return false;
+  }
   if (!Object.entries(pre).every(([id, weight]) => (marking[id] ?? 0) >= weight))
     return false;
   return places.every(place => place.capacity === undefined
