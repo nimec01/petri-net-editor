@@ -1,5 +1,26 @@
 # petri-net-editor
 
+## 0.4.0
+
+### Minor Changes
+
+- e42263a: Add PNML import and export support alongside the existing JSON format.
+
+### Patch Changes
+
+- c84e0ac: Update dependency @antfu/eslint-config to v10
+- c392d05: Update dependency katex to v0.19.1
+- 853d844: Update dependency nuxt to v4.6.3 [SECURITY]
+- 6c54567: Update non major updates
+- ed592e9: Update non major updates
+- ca408ca: Update non major updates
+- e289bfc: Update dependency katex to v0.19.0
+- 27582e6: Update non major updates
+- 3ef4616: Update non major updates
+- 4f8c3eb: Update non major updates
+- 3879e0f: Load share links when the URL fragment changes.
+- f997c5b: Upgrade to fixed @nuxt/cli version (4.0.3) and upgrade PNPM
+
 ## 0.3.4
 
 ### Patch Changes
