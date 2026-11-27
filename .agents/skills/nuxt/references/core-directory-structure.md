@@ -7,9 +7,9 @@ description: Nuxt project folder structure, conventions, and file organization
 
 Nuxt uses a conventions-based directory structure. Understanding it is key to effective development.
 
-> **Nuxt 4 change:** The default `srcDir` is now `app/`. All Vue application code (`app.vue`, `components/`, `composables/`, `pages/`, etc.) lives inside `app/`, while `server/`, `shared/`, `public/`, `modules/`, `layers/` and `nuxt.config.ts` stay at the project root. (In Nuxt 3 these app directories lived at the root by default.)
+> **Directory layout:** The default `srcDir` is `app/`. All Vue application code (`app.vue`, `components/`, `composables/`, `pages/`, etc.) lives inside `app/`, while `server/`, `shared/`, `public/`, `modules/`, `layers/` and `nuxt.config.ts` stay at the project root.
 
-## Standard Project Structure (Nuxt 4)
+## Standard Project Structure
 
 ```
 my-nuxt-app/
@@ -212,9 +212,17 @@ server/
 │   └── auth.ts          → Runs on every request
 ├── plugins/
 │   └── db.ts            → Server startup plugins
+├── types/
+│   └── todo.ts          → Auto-imported types (server context only)
 └── utils/
     └── db.ts            → Auto-imported server utilities
 ```
+
+**Nuxt 5 server imports:** Nitro/h3 helpers (`defineEventHandler`, `getQuery`, `createError`…) are **no longer auto-imported by default** — import them from `nuxt/server`. Your own `server/utils/` and `server/types/` exports are still auto-imported, but only files directly in `server/utils/` (nested ones warn `NUXT_B9006`; re-export them from a top-level file). Handlers must default-export `defineEventHandler` from `nuxt/server` and can return JSON values, a `Response`, or a `ReadableStream` (no `sendStream`). Server KV storage is `useKV()` with `nitro.kv` (was `useStorage()`/`nitro.storage`). File names in `server/` cannot contain unknown dotted suffixes (`hello.world.ts` fails; add to `nitro.scanSuffixes`). Inside server code, import shared Nuxt composables from `#imports/server` (not `#imports`). Re-enable Nitro auto-imports with `experimental.nitroAutoImports: true`.
+
+### `app/spa-loading-template.html`
+
+Plain HTML (no Vue, no auto-imports; inline its own `<style>`) inserted into the server response for `ssr: false` pages, shown until the first page is ready, in a `<div id="__nuxt-loader">` sibling of `#__nuxt` (customize with `app.spaLoaderTag`/`app.spaLoaderAttrs`, keep the `id`). Config: `spaLoadingTemplate: 'my-loader.html'` (path relative to `srcDir`) | `true` (built-in screen) | `false`. `experimental.spaLoadingTemplateLocation: 'within'` renders it inside `#__nuxt`, removed as soon as Vue mounts. For route transitions use `<NuxtLoadingIndicator>`.
 
 ### `shared/` Directory
 
@@ -298,9 +306,11 @@ Reference in components:
 
 <!-- 
 Source references:
-- https://nuxt.com/docs/4.x/directory-structure
-- https://nuxt.com/docs/4.x/directory-structure/app
-- https://nuxt.com/docs/4.x/directory-structure/server
-- https://nuxt.com/docs/4.x/directory-structure/shared
-- https://nuxt.com/docs/4.x/api/nuxt-config#alias
+- https://nuxt.com/docs/directory-structure
+- https://nuxt.com/docs/directory-structure/app
+- https://nuxt.com/docs/directory-structure/server
+- https://nuxt.com/docs/directory-structure/shared
+- https://nuxt.com/docs/directory-structure/app/spa-loading-template
+- https://nuxt.com/docs/guide/going-further/server-imports
+- https://nuxt.com/docs/api/nuxt-config#alias
 -->
