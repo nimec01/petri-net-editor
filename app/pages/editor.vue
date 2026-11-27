@@ -207,23 +207,23 @@ function handleShareLink() {
   }, 2000);
 }
 
-const activeTabJson = computed(() => {
+function activeTabJson(): string {
   if (activeTab.value.type !== 'petri-net')
     return '';
   return JSON.stringify({
     ...activeTab.value.petriNet.exportToJson(),
     title: activeTab.value.name,
   }, null, 2);
-});
+}
 
-const activeTabPnml = computed(() => {
+function activeTabPnml(): string {
   if (activeTab.value.type !== 'petri-net')
     return '';
   return exportToPnml({
     ...activeTab.value.petriNet.exportToJson(),
     title: activeTab.value.name,
   });
-});
+}
 
 function handleBeforeUnload(e: BeforeUnloadEvent) {
   const hasContent = tabs.value.some(t => t.type === 'petri-net' && !t.petriNet.isNetEmpty.value);
@@ -414,8 +414,8 @@ onBeforeUnmount(() => {
     <EditorExportModal
       v-if="activeTab.type === 'petri-net'"
       ref="exportModal"
-      :json="() => activeTabJson"
-      :pnml="() => activeTabPnml"
+      :json="activeTabJson"
+      :pnml="activeTabPnml"
     />
     <EditorImportModal ref="importModal" @import="handleImportData" />
     <EditorRenameModal ref="renameModal" @rename="(name) => renameTab(activeTab.id, name)" />

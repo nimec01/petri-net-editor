@@ -1,5 +1,6 @@
 import type { Core, NodeSingular } from 'cytoscape';
 import type { Arc, IPetriNet, Marking, Place, Transition } from '~/types/petri-net-core';
+import { isEnabledAt, UNBOUNDED_CAPACITY } from '~/utils/capacity';
 
 export class CytoscapePetriNet implements IPetriNet {
   private cy: Core;
@@ -24,6 +25,7 @@ export class CytoscapePetriNet implements IPetriNet {
       id: node.id(),
       label: node.data('label') || '',
       position: node.position(),
+      capacity: node.data('capacity') ?? UNBOUNDED_CAPACITY,
     }));
   }
 
@@ -79,15 +81,20 @@ export class CytoscapePetriNet implements IPetriNet {
 
   getInputPlaces(transitionId: string): Place[] {
     return this.cy.edges(`[type="arc"][target="${transitionId}"]`)
-      .map((edge) => {
+      .map((edge): Place | null => {
         const sourceNode = this.cy.getElementById(edge.data('source'));
         if (sourceNode.length === 0 || sourceNode.data('type') === 'transition') {
           return null;
         }
+        const parent = sourceNode.parent().first();
+        const place = parent.length > 0 && parent.data('type') === 'place'
+          ? parent
+          : sourceNode;
         return {
           id: sourceNode.id(),
           label: sourceNode.data('label') || '',
           position: sourceNode.position(),
+          capacity: place.data('capacity') ?? UNBOUNDED_CAPACITY,
         };
       })
       .filter((p): p is Place => p !== null);
@@ -95,15 +102,20 @@ export class CytoscapePetriNet implements IPetriNet {
 
   getOutputPlaces(transitionId: string): Place[] {
     return this.cy.edges(`[type="arc"][source="${transitionId}"]`)
-      .map((edge) => {
+      .map((edge): Place | null => {
         const targetNode = this.cy.getElementById(edge.data('target'));
         if (targetNode.length === 0 || targetNode.data('type') === 'transition') {
           return null;
         }
+        const parent = targetNode.parent().first();
+        const place = parent.length > 0 && parent.data('type') === 'place'
+          ? parent
+          : targetNode;
         return {
           id: targetNode.id(),
           label: targetNode.data('label') || '',
           position: targetNode.position(),
+          capacity: place.data('capacity') ?? UNBOUNDED_CAPACITY,
         };
       })
       .filter((p): p is Place => p !== null);
@@ -144,15 +156,7 @@ export class CytoscapePetriNet implements IPetriNet {
   }
 
   isTransitionEnabled(transitionId: string): boolean {
-    const inputArcs = this.cy.edges(`[type="arc"][target="${transitionId}"]`);
-    if (inputArcs.length === 0) {
-      return false;
-    }
-    return inputArcs.every((edge) => {
-      const sourceId = edge.data('source');
-      const weight = edge.data('weight') || 1;
-      return this.getTokens(sourceId) >= weight;
-    });
+    return isEnabledAt(this.getPlaces(), this.getMarking(), this.getPreMarking(transitionId), this.getPostMarking(transitionId));
   }
 
   getEnabledTransitions(): Transition[] {
@@ -203,6 +207,7 @@ export class CytoscapePetriNet implements IPetriNet {
       id,
       label: placeLabel,
       position: { x, y },
+      capacity: UNBOUNDED_CAPACITY,
     };
   }
 

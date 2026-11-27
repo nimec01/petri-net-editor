@@ -1,5 +1,6 @@
 import type { IPetriNet, Marking, Place } from '~/types/petri-net-core';
 import type { ReachabilityEdge, ReachabilityGraphData } from '~/utils/reachability-graph';
+import { isEnabledAt, UNBOUNDED_CAPACITY } from '~/utils/capacity';
 import { createReachabilityGraphBuilder, DEFAULT_REACHABILITY_LIMIT } from '~/utils/reachability-graph';
 
 export interface TransitionLiveness {
@@ -103,6 +104,7 @@ interface TransitionSpec {
   id: string;
   label: string;
   pre: Marking;
+  post: Marking;
 }
 
 export function normalizeLimit(value: number, fallback = DEFAULT_REACHABILITY_LIMIT): number {
@@ -112,24 +114,18 @@ export function normalizeLimit(value: number, fallback = DEFAULT_REACHABILITY_LI
     : fallback;
 }
 
-function isEnabledAt(marking: Marking, pre: Marking): boolean {
-  if (Object.keys(pre).length === 0) {
-    return false;
-  }
-  return Object.entries(pre).every(([placeId, weight]) => (marking[placeId] || 0) >= weight);
-}
-
 function buildTransitionSpecs(net: IPetriNet): TransitionSpec[] {
   return net.getTransitions().map(transition => ({
     id: transition.id,
     label: transition.label,
     pre: net.getPreMarking(transition.id),
+    post: net.getPostMarking(transition.id),
   }));
 }
 
-function computeLiveness(graph: ReachabilityGraphData, transitions: TransitionSpec[]): LivenessAnalysis {
+function computeLiveness(graph: ReachabilityGraphData, transitions: TransitionSpec[], places: Place[]): LivenessAnalysis {
   const nodeCount = graph.nodes.length;
-  const enabledMatrix = graph.nodes.map(node => transitions.map(spec => isEnabledAt(node.marking, spec.pre)));
+  const enabledMatrix = graph.nodes.map(node => transitions.map(spec => isEnabledAt(places, node.marking, spec.pre, spec.post)));
 
   const incoming: number[][] = Array.from({ length: nodeCount }, () => []);
   for (const edge of graph.edges) {
@@ -310,6 +306,7 @@ function computeReachability(graph: ReachabilityGraphData, target: Marking, path
 
 function computeBoundedness(graph: ReachabilityGraphData, places: Place[], paths: Map<number, PathStep[]>): BoundednessAnalysis {
   const placeResults = computeMaxTokens(graph, places);
+  const cappedPlaces = places.filter(place => place.capacity !== undefined && place.capacity !== UNBOUNDED_CAPACITY);
 
   for (let i = 0; i < graph.nodes.length; i++) {
     for (let j = 0; j < graph.nodes.length; j++) {
@@ -318,8 +315,23 @@ function computeBoundedness(graph: ReachabilityGraphData, places: Place[], paths
       }
       const larger = graph.nodes[i]!;
       const smaller = graph.nodes[j]!;
-      if (!strictlyDominates(larger.marking, smaller.marking)) {
+      if (!strictlyDominates(larger.marking, smaller.marking)
+        || cappedPlaces.some(place => (larger.marking[place.id] ?? 0) !== (smaller.marking[place.id] ?? 0))) {
         continue;
+      }
+      if (cappedPlaces.length > 0) {
+        const visited = new Set([smaller.id]);
+        const queue = [smaller.id];
+        for (let cursor = 0; cursor < queue.length && !visited.has(larger.id); cursor++) {
+          for (const edge of graph.edges) {
+            if (edge.source === queue[cursor] && !visited.has(edge.target)) {
+              visited.add(edge.target);
+              queue.push(edge.target);
+            }
+          }
+        }
+        if (!visited.has(larger.id))
+          continue;
       }
       const increasedPlaceIds = places
         .filter(place => (larger.marking[place.id] || 0) > (smaller.marking[place.id] || 0))
@@ -362,7 +374,7 @@ export function analyzePetriNet(net: IPetriNet, limit = DEFAULT_REACHABILITY_LIM
   const transitions = buildTransitionSpecs(net);
   const places = net.getPlaces();
 
-  const liveness = computeLiveness(graph, transitions);
+  const liveness = computeLiveness(graph, transitions, places);
   const paths = buildPaths(graph);
   const deadlockMarkings = graph.nodes
     .filter(node => node.deadlock)

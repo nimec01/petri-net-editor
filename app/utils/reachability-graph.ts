@@ -1,4 +1,5 @@
 import type { IPetriNet, Marking } from '~/types/petri-net-core';
+import { isEnabledAt } from '~/utils/capacity';
 
 export interface ReachabilityNode {
   id: number;
@@ -52,17 +53,6 @@ function markingKey(marking: Marking): string {
     .join(';');
 }
 
-function isEnabled(marking: Marking, pre: Marking): boolean {
-  if (Object.keys(pre).length === 0) {
-    return false;
-  }
-  return Object.entries(pre).every(([placeId, weight]) => (marking[placeId] || 0) >= weight);
-}
-
-function isDeadlock(marking: Marking, transitions: TransitionSpec[]): boolean {
-  return !transitions.some(spec => isEnabled(marking, spec.pre));
-}
-
 function applyFiring(marking: Marking, spec: TransitionSpec): Marking {
   const next: Marking = { ...marking };
   for (const [placeId, weight] of Object.entries(spec.pre)) {
@@ -85,6 +75,9 @@ export function createReachabilityGraphBuilder(
     pre: net.getPreMarking(transition.id),
     post: net.getPostMarking(transition.id),
   }));
+  const places = net.getPlaces();
+  const isEnabled = (marking: Marking, spec: TransitionSpec) => isEnabledAt(places, marking, spec.pre, spec.post);
+  const isDeadlock = (marking: Marking) => !transitions.some(spec => isEnabled(marking, spec));
 
   const graph: ReachabilityGraphData = { nodes: [], edges: [] };
   const markingIndex = new Map<string, number>();
@@ -101,7 +94,7 @@ export function createReachabilityGraphBuilder(
       id: 0,
       marking: { ...initial },
       depth: 0,
-      deadlock: isDeadlock(initial, transitions),
+      deadlock: isDeadlock(initial),
     });
     frontier.push({ nodeId: 0, cursor: 0 });
   }
@@ -116,7 +109,7 @@ export function createReachabilityGraphBuilder(
         }
         const spec = transitions[entry.cursor]!;
         entry.cursor++;
-        if (!isEnabled(node.marking, spec.pre)) {
+        if (!isEnabled(node.marking, spec)) {
           continue;
         }
         const next = applyFiring(node.marking, spec);
@@ -129,7 +122,7 @@ export function createReachabilityGraphBuilder(
             id: targetId,
             marking: next,
             depth: node.depth + 1,
-            deadlock: isDeadlock(next, transitions),
+            deadlock: isDeadlock(next),
           });
           maxDepth = Math.max(maxDepth, node.depth + 1);
           frontier.push({ nodeId: targetId, cursor: 0 });

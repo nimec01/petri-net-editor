@@ -1,4 +1,5 @@
 import type { PetriNetElementData, PetriNetState } from '~/types/petri-net';
+import { importCapacity, isNonNegativeInteger } from '~/utils/capacity';
 
 function escapeXml(value: string): string {
   return value
@@ -37,8 +38,11 @@ export function exportToPnml(state: PetriNetState): string {
     const marking = place.tokens && place.tokens > 0
       ? `\n        <initialMarking><text>${place.tokens}</text></initialMarking>`
       : '';
+    const capacity = place.capacity !== undefined
+      ? `\n        <toolspecific tool="petri-net-editor" version="1"><capacity encoding="json">${escapeXml(JSON.stringify(place.capacity))}</capacity></toolspecific>`
+      : '';
     return `      <place id="${escapeXml(place.id)}">
-        <name><text>${escapeXml(place.label)}</text></name>${marking}
+        <name><text>${escapeXml(place.label)}</text></name>${marking}${capacity}
         <graphics><position x="${place.x ?? 0}" y="${place.y ?? 0}" /></graphics>
       </place>`;
   }).join('\n');
@@ -70,7 +74,7 @@ ${placeXml}${placeXml && (transitionXml || arcXml)
 `;
 }
 
-export function importFromPnml(xml: string): PetriNetState {
+export function importFromPnml(xml: string, warnings: string[] = []): PetriNetState {
   const document = new DOMParser().parseFromString(xml, 'application/xml');
   const parserError = document.querySelector('parsererror');
   if (parserError) {
@@ -80,6 +84,22 @@ export function importFromPnml(xml: string): PetriNetState {
   const net = document.getElementsByTagNameNS('*', 'net')[0];
   if (!net) {
     throw new Error('Invalid PNML: missing net element.');
+  }
+
+  const capacityWarning = 'Some PNML capacity data could not be preserved.';
+  if ([
+    net,
+    ...net.getElementsByTagNameNS('*', '*'),
+  ].some(element =>
+    Array.from(element.attributes).some(attribute => attribute.localName.toLowerCase().includes('capacity')))) {
+    warnings.push(capacityWarning);
+  }
+  for (const capacity of net.getElementsByTagNameNS('*', 'capacity')) {
+    let parent = capacity.parentElement;
+    while (parent && parent !== net && parent.localName !== 'place')
+      parent = parent.parentElement;
+    if ((!parent || parent === net) && !warnings.includes(capacityWarning))
+      warnings.push(capacityWarning);
   }
 
   const elements: PetriNetElementData[] = [];
@@ -111,11 +131,38 @@ export function importFromPnml(xml: string): PetriNetState {
     };
     if (type === 'place') {
       const marking = elementText(node, 'initialMarking');
-      const tokens = marking
-        ? Number.parseInt(marking, 10)
-        : 0;
-      if (Number.isInteger(tokens) && tokens > 0) {
+      const markingNode = Array.from(node.children).find(child => child.localName === 'initialMarking');
+      const tokens = markingNode && /^\d+$/.test(marking)
+        ? Number(marking)
+        : markingNode ? Number.NaN : 0;
+      if (!isNonNegativeInteger(tokens))
+        throw new Error(`Invalid PNML marking for place "${element.label}": expected a non-negative integer.`);
+      if (tokens > 0) {
         element.tokens = tokens;
+      }
+      const capacityNodes = Array.from(node.getElementsByTagNameNS('*', 'capacity'));
+      let foundCapacity = false;
+      for (const capacityNode of capacityNodes) {
+        const tool = capacityNode.parentElement;
+        if (tool?.localName === 'toolspecific' && tool.getAttribute('tool') === 'petri-net-editor' && tool.getAttribute('version') === '1' && !foundCapacity) {
+          foundCapacity = true;
+          const value = capacityNode.textContent ?? '';
+          if (capacityNode.getAttribute('encoding') !== 'json') {
+            importCapacity(undefined, element.label, warnings);
+            if (!warnings.includes(capacityWarning))
+              warnings.push(capacityWarning);
+          } else {
+            let parsed: unknown;
+            try {
+              parsed = JSON.parse(value) as unknown;
+            } catch {
+              parsed = value;
+            }
+            element.capacity = importCapacity(parsed, element.label, warnings);
+          }
+        } else if (!warnings.includes(capacityWarning)) {
+          warnings.push(capacityWarning);
+        }
       }
     }
     elements.push(element);

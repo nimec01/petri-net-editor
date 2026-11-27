@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { PetriNetState } from '~/types/petri-net';
 import IconFileUpload from '~icons/tabler/file-upload';
+import { normalizeImportedCapacities, validateMarkings } from '~/utils/capacity';
 import { importFromPnml } from '~/utils/pnml';
 
 const emit = defineEmits<{
@@ -11,11 +12,15 @@ const dialogEl = ref<HTMLDialogElement | null>(null);
 const jsonText = ref('');
 const format = ref<'json' | 'pnml'>('json');
 const error = ref('');
+const warnings = ref<string[]>([]);
+const pendingImport = ref<PetriNetState | null>(null);
 
 function open() {
   jsonText.value = '';
   format.value = 'json';
   error.value = '';
+  warnings.value = [];
+  pendingImport.value = null;
   dialogEl.value?.showModal();
 }
 
@@ -30,28 +35,45 @@ function handleFileChange(e: Event) {
   const reader = new FileReader();
   reader.onload = () => {
     jsonText.value = reader.result as string;
+    pendingImport.value = null;
+    warnings.value = [];
   };
   reader.readAsText(file);
 }
 
 function handleImport() {
   error.value = '';
+  if (pendingImport.value) {
+    emit('import', pendingImport.value);
+    close();
+    return;
+  }
   try {
-    const state = format.value === 'pnml'
-      ? importFromPnml(jsonText.value)
+    const importWarnings: string[] = [];
+    const rawState = format.value === 'pnml'
+      ? importFromPnml(jsonText.value, importWarnings)
       : JSON.parse(jsonText.value) as PetriNetState;
-    if (!state.elements || !Array.isArray(state.elements)) {
+    if (!rawState || !Array.isArray(rawState.elements)) {
       error.value = 'Invalid format: missing "elements" array.';
+      return;
+    }
+    const state = normalizeImportedCapacities(rawState, importWarnings);
+    validateMarkings(state);
+    if (format.value === 'json' && state.elements.some(element => element.type !== 'place' && element.capacity !== undefined))
+      importWarnings.push('Capacity data on non-place elements could not be preserved.');
+    if (importWarnings.length) {
+      warnings.value = importWarnings;
+      pendingImport.value = state;
       return;
     }
     emit('import', state);
     close();
   } catch (cause) {
-    error.value = format.value === 'json'
+    error.value = cause instanceof SyntaxError
       ? 'Invalid JSON. Please check the input.'
       : cause instanceof Error
         ? cause.message
-        : 'Invalid PNML. Please check the input.';
+        : 'Invalid input.';
   }
 }
 
@@ -67,7 +89,7 @@ defineExpose({ open, close });
       <div class="flex flex-col gap-4">
         <label class="form-control">
           <span class="label-text mb-1">Format</span>
-          <select v-model="format" class="select select-bordered w-full" data-testid="import-format">
+          <select v-model="format" class="select select-bordered w-full" data-testid="import-format" @change="pendingImport = null; warnings = []">
             <option value="json">JSON</option>
             <option value="pnml">PNML</option>
           </select>
@@ -81,6 +103,7 @@ defineExpose({ open, close });
             class="textarea textarea-bordered w-full font-mono text-sm h-56 resize-none bg-base-300"
             :data-testid="format === 'json' ? 'import-json' : 'import-pnml'"
             :placeholder="format === 'json' ? '{&quot;elements&quot;: [...], &quot;formatVersion&quot;: 1}' : '&lt;pnml&gt;...&lt;/pnml&gt;'"
+            @input="pendingImport = null; warnings = []"
           />
         </div>
         <div class="divider">
@@ -100,6 +123,9 @@ defineExpose({ open, close });
         </div>
         <p v-if="error" class="text-error text-sm">
           {{ error }}
+        </p>
+        <p v-for="warning in warnings" :key="warning" class="text-warning text-sm" role="alert">
+          {{ warning }} Import again to continue.
         </p>
       </div>
       <div class="modal-action">

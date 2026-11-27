@@ -69,6 +69,7 @@ function setMode(m: EditorMode) {
           :active-mode="petriNet!.mode.value"
           :current-layout="petriNet!.layoutType.value"
           :extensions-open="extensions!.drawerOpen.value"
+          :simulation-blocked="petriNet!.hasInvalidPlaces.value"
           @update:active-mode="setMode"
           @zoom-in="petriNet!.zoomIn()"
           @zoom-out="petriNet!.zoomOut()"
@@ -83,10 +84,24 @@ function setMode(m: EditorMode) {
           :element="petriNet!.selectedElement.value"
           @update-label="(id, label) => petriNet!.setLabel(id, label)"
           @update-tokens="(id, tokens) => petriNet!.setTokens(id, tokens)"
+          @update-capacity="(id, capacity) => petriNet!.setCapacity(id, capacity)"
           @update-weight="(id, weight) => petriNet!.setWeight(id, weight)"
           @delete="(id) => petriNet!.deleteElement(id)"
           @close="petriNet!.closeProperties()"
         />
+      </div>
+
+      <div v-if="petriNet!.importError.value" class="absolute bottom-4 left-4 z-10 alert alert-error" role="alert">
+        <span>{{ petriNet!.importError.value }}</span>
+        <button class="btn btn-sm" @click="petriNet!.importError.value = ''">
+          Dismiss
+        </button>
+      </div>
+      <div v-if="petriNet!.importWarnings.value.length" class="absolute bottom-4 left-4 z-10 alert alert-warning" role="alert">
+        <span>{{ petriNet!.importWarnings.value.join(' ') }}</span>
+        <button class="btn btn-sm" @click="petriNet!.importWarnings.value = []">
+          Dismiss
+        </button>
       </div>
 
       <div v-if="petriNet!.mode.value === 'fire'" class="absolute top-4 left-4 z-10">
