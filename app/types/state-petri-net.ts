@@ -1,5 +1,6 @@
 import type { PetriNetState } from '~/types/petri-net';
 import type { Arc, IPetriNet, Marking, Place, Transition } from '~/types/petri-net-core';
+import { isEnabledAt } from '~/utils/capacity';
 
 export class StatePetriNet implements IPetriNet {
   private places: Place[];
@@ -19,6 +20,7 @@ export class StatePetriNet implements IPetriNet {
           id: el.id,
           label: el.label,
           position: { x: el.x ?? 0, y: el.y ?? 0 },
+          capacity: el.capacity,
         });
         this.marking[el.id] = el.tokens ?? 0;
       } else if (el.type === 'transition') {
@@ -101,9 +103,7 @@ export class StatePetriNet implements IPetriNet {
   }
 
   isTransitionEnabled(transitionId: string): boolean {
-    const pre = this.getPreMarking(transitionId);
-    return Object.keys(pre).length > 0
-      && Object.entries(pre).every(([placeId, weight]) => (this.marking[placeId] ?? 0) >= weight);
+    return isEnabledAt(this.places, this.marking, this.getPreMarking(transitionId), this.getPostMarking(transitionId));
   }
 
   getEnabledTransitions(): Transition[] {

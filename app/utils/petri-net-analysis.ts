@@ -1,5 +1,6 @@
 import type { IPetriNet, Marking, Place } from '~/types/petri-net-core';
 import type { ReachabilityEdge, ReachabilityGraphData } from '~/utils/reachability-graph';
+import { isEnabledAt } from '~/utils/capacity';
 import { createReachabilityGraphBuilder, DEFAULT_REACHABILITY_LIMIT } from '~/utils/reachability-graph';
 
 export interface TransitionLiveness {
@@ -103,6 +104,7 @@ interface TransitionSpec {
   id: string;
   label: string;
   pre: Marking;
+  post: Marking;
 }
 
 export function normalizeLimit(value: number, fallback = DEFAULT_REACHABILITY_LIMIT): number {
@@ -112,24 +114,18 @@ export function normalizeLimit(value: number, fallback = DEFAULT_REACHABILITY_LI
     : fallback;
 }
 
-function isEnabledAt(marking: Marking, pre: Marking): boolean {
-  if (Object.keys(pre).length === 0) {
-    return false;
-  }
-  return Object.entries(pre).every(([placeId, weight]) => (marking[placeId] || 0) >= weight);
-}
-
 function buildTransitionSpecs(net: IPetriNet): TransitionSpec[] {
   return net.getTransitions().map(transition => ({
     id: transition.id,
     label: transition.label,
     pre: net.getPreMarking(transition.id),
+    post: net.getPostMarking(transition.id),
   }));
 }
 
-function computeLiveness(graph: ReachabilityGraphData, transitions: TransitionSpec[]): LivenessAnalysis {
+function computeLiveness(graph: ReachabilityGraphData, transitions: TransitionSpec[], places: Place[]): LivenessAnalysis {
   const nodeCount = graph.nodes.length;
-  const enabledMatrix = graph.nodes.map(node => transitions.map(spec => isEnabledAt(node.marking, spec.pre)));
+  const enabledMatrix = graph.nodes.map(node => transitions.map(spec => isEnabledAt(places, node.marking, spec.pre, spec.post)));
 
   const incoming: number[][] = Array.from({ length: nodeCount }, () => []);
   for (const edge of graph.edges) {
@@ -318,7 +314,7 @@ function computeBoundedness(graph: ReachabilityGraphData, places: Place[], paths
       }
       const larger = graph.nodes[i]!;
       const smaller = graph.nodes[j]!;
-      if (!strictlyDominates(larger.marking, smaller.marking)) {
+      if (places.some(place => place.capacity !== undefined) || !strictlyDominates(larger.marking, smaller.marking)) {
         continue;
       }
       const increasedPlaceIds = places
@@ -362,7 +358,7 @@ export function analyzePetriNet(net: IPetriNet, limit = DEFAULT_REACHABILITY_LIM
   const transitions = buildTransitionSpecs(net);
   const places = net.getPlaces();
 
-  const liveness = computeLiveness(graph, transitions);
+  const liveness = computeLiveness(graph, transitions, places);
   const paths = buildPaths(graph);
   const deadlockMarkings = graph.nodes
     .filter(node => node.deadlock)

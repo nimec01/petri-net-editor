@@ -11,6 +11,7 @@ defineProps<{
   activeMode: EditorMode;
   currentLayout: LayoutType;
   extensionsOpen: boolean;
+  simulationBlocked: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -89,11 +90,12 @@ function toggleFireMode(currentMode: EditorMode) {
           </button>
         </div>
       </template>
-      <div class="tooltip tooltip-bottom" :data-tip="activeMode === 'fire' ? 'Exit Fire Mode' : 'Fire Mode'">
+      <div class="tooltip tooltip-bottom" :data-tip="simulationBlocked ? 'Fix invalid place capacities before simulation' : activeMode === 'fire' ? 'Exit Fire Mode' : 'Fire Mode'">
         <button
           class="btn join-item btn-sm"
           :class="{ 'btn-active btn-primary': activeMode === 'fire' }"
           data-testid="mode-fire"
+          :disabled="simulationBlocked && activeMode !== 'fire'"
           @click="toggleFireMode(activeMode)"
         >
           <IconFire style="font-size: 1.2em;" />

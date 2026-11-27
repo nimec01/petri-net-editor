@@ -6,6 +6,7 @@ import dagre from 'cytoscape-dagre';
 import { computed, ref, shallowRef } from 'vue';
 import { FORMAT_VERSION } from '~/constants';
 import { CytoscapePetriNet } from '~/types/cytoscape-petri-net';
+import { isNonNegativeInteger, placeCapacityError, validateMarkings } from '~/utils/capacity';
 import { decodeState, encodeState } from '~/utils/share';
 
 cytoscape.use(dagre);
@@ -127,6 +128,13 @@ const petriNetStylesheet: cytoscape.StylesheetJson = [
       'border-width': 3,
     },
   },
+  {
+    selector: 'node.invalid-place',
+    style: {
+      'border-color': '#dc2626',
+      'border-width': 4,
+    },
+  },
 ];
 
 export function usePetriNet() {
@@ -150,8 +158,13 @@ export function usePetriNet() {
   let autoFireTimer: ReturnType<typeof setInterval> | null = null;
   const elementCount = ref(0);
   const layoutType = ref<LayoutType>('dagre');
+  const hasInvalidPlaces = ref(false);
 
   watch(mode, (newMode, oldMode) => {
+    if (newMode === 'fire' && hasInvalidPlaces.value) {
+      mode.value = oldMode;
+      return;
+    }
     if (newMode !== 'select') {
       cy.value?.elements().unselect();
       selectedElement.value = null;
@@ -162,7 +175,7 @@ export function usePetriNet() {
     if (newMode === 'fire') {
       enterFireMode();
     }
-  });
+  }, { flush: 'sync' });
   const undoStack = ref<Command[]>([]);
   const redoStack = ref<Command[]>([]);
   let placeCount = 0;
@@ -217,6 +230,9 @@ export function usePetriNet() {
       type: isPlace ? 'place' : 'transition',
       label: wrapperEle.data('label') || '',
       tokens: innerNode.data('tokens'),
+      capacity: isPlace
+        ? wrapperEle.data('capacity')
+        : undefined,
     };
   }
 
@@ -399,12 +415,29 @@ export function usePetriNet() {
     cy.value = instance;
     petriNet.value = new CytoscapePetriNet(instance);
 
+    instance.on('add remove data', 'node', updatePlaceValidity);
     if (pendingState) {
       importFromJson(pendingState);
       pendingState = null;
     }
 
     return instance;
+  }
+
+  function updatePlaceValidity() {
+    if (!cy.value)
+      return;
+    let invalid = false;
+    cy.value.nodes('[type="place"]').forEach((place) => {
+      const inner = place.children().first();
+      const error = placeCapacityError(place.data('capacity'), inner.data('tokens') ?? 0);
+      inner.toggleClass('invalid-place', !!error);
+      if (error)
+        invalid = true;
+    });
+    hasInvalidPlaces.value = invalid;
+    if (invalid && mode.value === 'fire')
+      mode.value = 'select';
   }
 
   function handleCanvasTap(e: EventObject) {
@@ -613,7 +646,12 @@ export function usePetriNet() {
     } else if (data.type === 'place') {
       instance.add({
         group: 'nodes',
-        data: { id: data.id, type: 'place', label: data.label },
+        data: {
+          id: data.id,
+          type: 'place',
+          label: data.label,
+          capacity: data.capacity,
+        },
         position: { x: data.x ?? 0, y: data.y ?? 0 },
         classes: 'place-wrapper',
       });
@@ -671,6 +709,7 @@ export function usePetriNet() {
           type: 'place',
           label: node.data('label') || '',
           tokens: inner.data('tokens') ?? 0,
+          capacity: node.data('capacity'),
           x: node.position('x'),
           y: node.position('y'),
         });
@@ -752,7 +791,12 @@ export function usePetriNet() {
         placeCount++;
         instance.add({
           group: 'nodes',
-          data: { id: newId, type: 'place', label: el.label },
+          data: {
+            id: newId,
+            type: 'place',
+            label: el.label,
+            capacity: el.capacity,
+          },
           position: { x, y },
           classes: 'place-wrapper',
         });
@@ -768,6 +812,7 @@ export function usePetriNet() {
           type: 'place',
           label: el.label,
           tokens: el.tokens ?? 0,
+          capacity: el.capacity,
           x,
           y,
         });
@@ -833,6 +878,7 @@ export function usePetriNet() {
     pushUndo({ type: 'add', elementData: batch[0]!, elements: batch });
     pasteCounter++;
     elementCount.value = instance.elements().length;
+    updatePlaceValidity();
     return true;
   }
 
@@ -851,7 +897,10 @@ export function usePetriNet() {
       id: deleteTarget.id(),
       type: deleteTarget.data('type') || 'place',
       label: deleteTarget.data('label') || '',
-      tokens: deleteTarget.data('tokens'),
+      tokens: deleteTarget.data('type') === 'place'
+        ? deleteTarget.children().first().data('tokens')
+        : deleteTarget.data('tokens'),
+      capacity: deleteTarget.data('capacity'),
       weight: deleteTarget.data('weight'),
       source: deleteTarget.data('source'),
       target: deleteTarget.data('target'),
@@ -869,6 +918,8 @@ export function usePetriNet() {
   }
 
   function setTokens(id: string, count: number) {
+    if (!isNonNegativeInteger(count))
+      return;
     let tokenEle = cy.value?.getElementById(id);
     if (!tokenEle || tokenEle.length === 0)
       return;
@@ -913,6 +964,31 @@ export function usePetriNet() {
         tokens: previousTokens,
       },
     });
+  }
+
+  function setCapacity(id: string, capacity: number | undefined) {
+    const place = cy.value?.getElementById(id);
+    if (!place || place.length === 0 || place.data('type') !== 'place' || (capacity !== undefined && !isNonNegativeInteger(capacity)))
+      return;
+    const previousCapacity: unknown = place.data('capacity');
+    if (capacity === undefined)
+      place.removeData('capacity');
+    else
+      place.data('capacity', capacity);
+    if (selectedElement.value?.id === id)
+      selectedElement.value = { ...selectedElement.value, capacity };
+    const label = place.data('label') as string;
+    pushUndo({
+      type: 'modify',
+      elementData: { id, type: 'place', label, capacity },
+      previousData: {
+        id,
+        type: 'place',
+        label,
+        capacity: previousCapacity,
+      },
+    });
+    updatePlaceValidity();
   }
 
   function incrementTokens(id: string) {
@@ -1008,6 +1084,12 @@ export function usePetriNet() {
       const ele = cy.value.getElementById(prev.id);
       if (ele.length > 0) {
         if (prev.type === 'place') {
+          if ('capacity' in prev) {
+            if (prev.capacity === undefined)
+              ele.removeData('capacity');
+            else
+              ele.data('capacity', prev.capacity);
+          }
           if (prev.label !== undefined) {
             ele.data('label', prev.label);
           }
@@ -1033,12 +1115,16 @@ export function usePetriNet() {
             label: prev.label ?? selectedElement.value.label,
             tokens: prev.tokens ?? selectedElement.value.tokens,
             weight: prev.weight ?? selectedElement.value.weight,
+            ...('capacity' in prev
+              ? { capacity: prev.capacity }
+              : {}),
           };
         }
       }
     }
 
     redoStack.value.push(cmd);
+    updatePlaceValidity();
   }
 
   function redo() {
@@ -1061,6 +1147,12 @@ export function usePetriNet() {
       const ele = cy.value.getElementById(data.id);
       if (ele.length > 0) {
         if (data.type === 'place') {
+          if ('capacity' in data) {
+            if (data.capacity === undefined)
+              ele.removeData('capacity');
+            else
+              ele.data('capacity', data.capacity);
+          }
           if (data.label !== undefined) {
             ele.data('label', data.label);
           }
@@ -1086,12 +1178,16 @@ export function usePetriNet() {
             label: data.label ?? selectedElement.value.label,
             tokens: data.tokens ?? selectedElement.value.tokens,
             weight: data.weight ?? selectedElement.value.weight,
+            ...('capacity' in data
+              ? { capacity: data.capacity }
+              : {}),
           };
         }
       }
     }
 
     undoStack.value.push(cmd);
+    updatePlaceValidity();
   }
 
   function zoomIn() {
@@ -1180,6 +1276,7 @@ export function usePetriNet() {
         ? (wrapperToTokens.get(ele.id()) ?? 0)
         : ele.data('tokens') as number | undefined;
       const weight = ele.data('weight') as number | undefined;
+      const capacity: unknown = ele.data('capacity');
       elements.push({
         id: ele.id(),
         type: ele.data('type'),
@@ -1189,6 +1286,9 @@ export function usePetriNet() {
           : {}),
         ...(weight !== undefined && weight !== 1
           ? { weight }
+          : {}),
+        ...(ele.data('type') === 'place' && capacity !== undefined
+          ? { capacity }
           : {}),
         ...(source
           ? { source: innerToWrapper.get(source) ?? source }
@@ -1208,6 +1308,7 @@ export function usePetriNet() {
   }
 
   function importFromJson(state: PetriNetState) {
+    validateMarkings(state);
     if (!cy.value) {
       pendingState = state;
       return;
@@ -1218,6 +1319,8 @@ export function usePetriNet() {
       console.warn(`File was created with a newer version (format v${formatVersion}). Import may be incomplete.`);
     }
 
+    if (mode.value === 'fire')
+      mode.value = 'select';
     cy.value.elements().remove();
     placeCount = 0;
     transitionCount = 0;
@@ -1234,7 +1337,12 @@ export function usePetriNet() {
         wrapperToInner.set(el.id, innerId);
         cy.value.add({
           group: 'nodes',
-          data: { id: el.id, type: 'place', label: el.label },
+          data: {
+            id: el.id,
+            type: 'place',
+            label: el.label,
+            capacity: el.capacity,
+          },
           position: { x: el.x ?? 0, y: el.y ?? 0 },
           classes: 'place-wrapper',
         });
@@ -1278,6 +1386,7 @@ export function usePetriNet() {
     selectedElement.value = null;
     nextId = state.elements.length + 1;
     elementCount.value = cy.value.elements().length;
+    updatePlaceValidity();
   }
 
   function enterFireMode() {
@@ -1453,6 +1562,7 @@ export function usePetriNet() {
     redoStack.value = [];
     selectedElement.value = null;
     elementCount.value = 0;
+    updatePlaceValidity();
   }
 
   function destroy() {
@@ -1481,6 +1591,7 @@ export function usePetriNet() {
     copySelection,
     pasteClipboard,
     setTokens,
+    setCapacity,
     incrementTokens,
     setLabel,
     setWeight,
@@ -1503,6 +1614,7 @@ export function usePetriNet() {
     autoFireN,
     setAutoFireSpeed,
     isNetEmpty,
+    hasInvalidPlaces,
     clearNet,
     destroy,
   };

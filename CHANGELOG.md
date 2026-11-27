@@ -1,5 +1,9 @@
 # petri-net-editor
 
+## Unreleased
+
+- Add optional place capacities with validation, capacity-aware simulation and analysis, and JSON/PNML persistence.
+
 ## 0.3.4
 
 ### Patch Changes

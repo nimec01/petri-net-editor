@@ -60,6 +60,9 @@ defineExpose({ open, close });
           <option value="pnml">PNML</option>
         </select>
       </label>
+      <p v-if="format === 'pnml' && JSON.parse(props.json()).elements.some((element: { capacity?: unknown }) => element.capacity !== undefined)" class="text-warning text-sm mb-2">
+        Capacities use a tool-specific PNML annotation and may not be preserved by other applications.
+      </p>
       <textarea
         class="textarea textarea-bordered w-full font-mono text-sm h-72 resize-none bg-base-300"
         readonly

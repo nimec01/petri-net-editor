@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PetriNetElementData } from '~/types/petri-net';
+import { isNonNegativeInteger, placeCapacityError } from '~/utils/capacity';
 
 const props = defineProps<{
   element: PetriNetElementData | null;
@@ -8,6 +9,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   updateLabel: [id: string, label: string];
   updateTokens: [id: string, tokens: number];
+  updateCapacity: [id: string, capacity: number | undefined];
   updateWeight: [id: string, weight: number];
   delete: [id: string];
   close: [];
@@ -16,6 +18,11 @@ const emit = defineEmits<{
 const localLabel = ref('');
 const localTokens = ref(0);
 const localWeight = ref(1);
+const localCapacity = ref('');
+const capacityInputError = ref('');
+const capacityError = computed(() => props.element?.type === 'place'
+  ? placeCapacityError(props.element.capacity, props.element.tokens ?? 0)
+  : null);
 
 watch(
   () => props.element,
@@ -24,6 +31,12 @@ watch(
       localLabel.value = el.label;
       localTokens.value = el.tokens ?? 0;
       localWeight.value = el.weight ?? 1;
+      localCapacity.value = el.capacity === undefined
+        ? ''
+        : typeof el.capacity === 'string'
+          ? el.capacity
+          : JSON.stringify(el.capacity);
+      capacityInputError.value = '';
     }
   },
   { immediate: true },
@@ -32,6 +45,21 @@ watch(
 function onLabelInput() {
   if (props.element) {
     emit('updateLabel', props.element.id, localLabel.value);
+  }
+}
+
+function onCapacityInput() {
+  if (!props.element)
+    return;
+  const text = localCapacity.value.trim();
+  if (!text) {
+    capacityInputError.value = '';
+    emit('updateCapacity', props.element.id, undefined);
+  } else if (/^\d+$/.test(text) && isNonNegativeInteger(Number(text))) {
+    capacityInputError.value = '';
+    emit('updateCapacity', props.element.id, Number(text));
+  } else {
+    capacityInputError.value = 'Capacity must be a non-negative integer.';
   }
 }
 
@@ -146,6 +174,22 @@ function decrementTokens() {
             +
           </button>
         </div>
+        <label for="place-capacity" class="text-xs opacity-70 mt-2 block">Capacity (empty for unbounded)</label>
+        <input
+          id="place-capacity"
+          v-model="localCapacity"
+          type="text"
+          inputmode="numeric"
+          class="input input-sm w-full"
+          :class="{ 'input-error': capacityError || capacityInputError }"
+          :aria-invalid="!!(capacityError || capacityInputError)"
+          aria-describedby="capacity-error"
+          data-testid="prop-capacity"
+          @change="onCapacityInput"
+        >
+        <p v-if="capacityInputError || capacityError" id="capacity-error" class="text-error text-sm" role="alert">
+          {{ capacityInputError || capacityError }}
+        </p>
       </div>
 
       <button

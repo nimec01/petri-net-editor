@@ -12,7 +12,7 @@ Built with [Nuxt](https://nuxt.com/) 4, Vue 3, TypeScript, [Cytoscape.js](https:
 
 ## Features
 
-- **Editing** — create, edit, and delete places, transitions, and weighted arcs; set tokens on places; drag elements anywhere on the canvas
+- **Editing** — create, edit, and delete places, transitions, and weighted arcs; set tokens and optional capacities on places; drag elements anywhere on the canvas
 - **History** — full undo/redo for every editing action
 - **Visualization** — canvas zoom, pan, and fit-to-view; automatic (DAG-based) layouts; labels for places, transitions, and initial markings
 - **Simulation** — manually fire enabled transitions, run automatic random firing, step through executions, and inspect the firing history / trace
@@ -20,6 +20,8 @@ Built with [Nuxt](https://nuxt.com/) 4, Vue 3, TypeScript, [Cytoscape.js](https:
 - **Math notation** — render state equations and formulas with KaTeX
 - **Persistence** — save/load nets to JSON or PNML, share a net as an encoded URL, or load it by sending it to the server with a POST request
 - **Enabled-transition highlighting** — see at a glance which transitions can fire
+
+Places are unbounded unless a non-negative capacity is set in their properties. A place whose tokens exceed its capacity is highlighted in red and must be repaired before simulation. PNML exports store capacities in a tool-specific annotation, which other applications may not preserve.
 
 ## Deployment
 

@@ -1,4 +1,5 @@
 import type { PetriNetElementData, PetriNetState } from '~/types/petri-net';
+import { isNonNegativeInteger } from '~/utils/capacity';
 
 function escapeXml(value: string): string {
   return value
@@ -37,8 +38,11 @@ export function exportToPnml(state: PetriNetState): string {
     const marking = place.tokens && place.tokens > 0
       ? `\n        <initialMarking><text>${place.tokens}</text></initialMarking>`
       : '';
+    const capacity = place.capacity !== undefined
+      ? `\n        <toolspecific tool="petri-net-editor" version="1"><capacity encoding="json">${escapeXml(JSON.stringify(place.capacity))}</capacity></toolspecific>`
+      : '';
     return `      <place id="${escapeXml(place.id)}">
-        <name><text>${escapeXml(place.label)}</text></name>${marking}
+        <name><text>${escapeXml(place.label)}</text></name>${marking}${capacity}
         <graphics><position x="${place.x ?? 0}" y="${place.y ?? 0}" /></graphics>
       </place>`;
   }).join('\n');
@@ -70,7 +74,7 @@ ${placeXml}${placeXml && (transitionXml || arcXml)
 `;
 }
 
-export function importFromPnml(xml: string): PetriNetState {
+export function importFromPnml(xml: string, warnings: string[] = []): PetriNetState {
   const document = new DOMParser().parseFromString(xml, 'application/xml');
   const parserError = document.querySelector('parsererror');
   if (parserError) {
@@ -111,11 +115,28 @@ export function importFromPnml(xml: string): PetriNetState {
     };
     if (type === 'place') {
       const marking = elementText(node, 'initialMarking');
-      const tokens = marking
-        ? Number.parseInt(marking, 10)
-        : 0;
-      if (Number.isInteger(tokens) && tokens > 0) {
+      const markingNode = Array.from(node.children).find(child => child.localName === 'initialMarking');
+      const tokens = markingNode && /^\d+$/.test(marking)
+        ? Number(marking)
+        : markingNode ? Number.NaN : 0;
+      if (!isNonNegativeInteger(tokens))
+        throw new Error(`Invalid PNML marking for place "${element.label}": expected a non-negative integer.`);
+      if (tokens > 0) {
         element.tokens = tokens;
+      }
+      const capacityNodes = Array.from(node.getElementsByTagNameNS('*', 'capacity'));
+      for (const capacityNode of capacityNodes) {
+        const tool = capacityNode.parentElement;
+        if (tool?.localName === 'toolspecific' && tool.getAttribute('tool') === 'petri-net-editor' && tool.getAttribute('version') === '1' && capacityNode.getAttribute('encoding') === 'json' && element.capacity === undefined) {
+          const value = capacityNode.textContent ?? '';
+          try {
+            element.capacity = JSON.parse(value) as unknown;
+          } catch {
+            element.capacity = value;
+          }
+        } else if (!warnings.includes('Some PNML capacity data could not be preserved.')) {
+          warnings.push('Some PNML capacity data could not be preserved.');
+        }
       }
     }
     elements.push(element);

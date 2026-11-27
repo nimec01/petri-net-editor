@@ -1,5 +1,6 @@
 import type { Core, NodeSingular } from 'cytoscape';
 import type { Arc, IPetriNet, Marking, Place, Transition } from '~/types/petri-net-core';
+import { isEnabledAt } from '~/utils/capacity';
 
 export class CytoscapePetriNet implements IPetriNet {
   private cy: Core;
@@ -24,6 +25,7 @@ export class CytoscapePetriNet implements IPetriNet {
       id: node.id(),
       label: node.data('label') || '',
       position: node.position(),
+      capacity: node.data('capacity'),
     }));
   }
 
@@ -144,15 +146,7 @@ export class CytoscapePetriNet implements IPetriNet {
   }
 
   isTransitionEnabled(transitionId: string): boolean {
-    const inputArcs = this.cy.edges(`[type="arc"][target="${transitionId}"]`);
-    if (inputArcs.length === 0) {
-      return false;
-    }
-    return inputArcs.every((edge) => {
-      const sourceId = edge.data('source');
-      const weight = edge.data('weight') || 1;
-      return this.getTokens(sourceId) >= weight;
-    });
+    return isEnabledAt(this.getPlaces(), this.getMarking(), this.getPreMarking(transitionId), this.getPostMarking(transitionId));
   }
 
   getEnabledTransitions(): Transition[] {
