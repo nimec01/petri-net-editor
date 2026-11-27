@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { IPetriNet } from '~/types/petri-net-core';
 import katex from 'katex';
+import { UNBOUNDED_CAPACITY } from '~/utils/capacity';
 import 'katex/dist/katex.min.css';
 
 const { petriNet } = defineProps<{
@@ -46,7 +47,21 @@ m_0 & ${places.map(p => p.label).join(' & ')} \\\\
 \\end{array}`;
 });
 
-const katexString = computed(() => katex.renderToString(`N = (P,T,{}^{\\bullet}(),(){}^{\\bullet},m_0) \\\\
+const capacityMatrix = computed(() => {
+  const places = petriNet.getPlaces();
+  if (!places.some(place => place.capacity !== undefined && place.capacity !== UNBOUNDED_CAPACITY))
+    return '';
+
+  return `\\begin{array}{c|${'c'.repeat(places.length)}}
+c & ${places.map(p => p.label).join(' & ')} \\\\
+\\hline
+ & ${places.map(p => p.capacity === undefined || p.capacity === UNBOUNDED_CAPACITY
+    ? '\\infty'
+    : p.capacity).join(' & ')}
+\\end{array}`;
+});
+
+const katexString = computed(() => katex.renderToString(`N = (P,T,{}^{\\bullet}(),(){}^{\\bullet},m_0${capacityMatrix.value ? ',c' : ''}) \\\\
 P = \\{${petriNet.getPlaces().map(p => p.label).join(',')}\\} \\\\
 T = \\{${petriNet.getTransitions().map(t => t.label).join(',')} \\} \\\\
 \\\\[1em]
@@ -55,6 +70,9 @@ ${preconditionMatrix.value} \\\\
 ${postconditionMatrix.value} \\\\
 \\\\[1em]
 ${initialMarkingMatrix.value} \\\\
+${capacityMatrix.value
+  ? `\\\\[1em]\n${capacityMatrix.value} \\\\`
+  : ''}
 `, { throwOnError: true, displayMode: false }));
 </script>
 
