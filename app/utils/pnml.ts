@@ -86,6 +86,22 @@ export function importFromPnml(xml: string, warnings: string[] = []): PetriNetSt
     throw new Error('Invalid PNML: missing net element.');
   }
 
+  const capacityWarning = 'Some PNML capacity data could not be preserved.';
+  if ([
+    net,
+    ...net.getElementsByTagNameNS('*', '*'),
+  ].some(element =>
+    Array.from(element.attributes).some(attribute => attribute.localName.toLowerCase().includes('capacity')))) {
+    warnings.push(capacityWarning);
+  }
+  for (const capacity of net.getElementsByTagNameNS('*', 'capacity')) {
+    let parent = capacity.parentElement;
+    while (parent && parent !== net && parent.localName !== 'place')
+      parent = parent.parentElement;
+    if ((!parent || parent === net) && !warnings.includes(capacityWarning))
+      warnings.push(capacityWarning);
+  }
+
   const elements: PetriNetElementData[] = [];
   const nodeIds = new Set<string>();
   const nodes = [
@@ -127,15 +143,21 @@ export function importFromPnml(xml: string, warnings: string[] = []): PetriNetSt
       const capacityNodes = Array.from(node.getElementsByTagNameNS('*', 'capacity'));
       for (const capacityNode of capacityNodes) {
         const tool = capacityNode.parentElement;
-        if (tool?.localName === 'toolspecific' && tool.getAttribute('tool') === 'petri-net-editor' && tool.getAttribute('version') === '1' && capacityNode.getAttribute('encoding') === 'json' && element.capacity === undefined) {
+        if (tool?.localName === 'toolspecific' && tool.getAttribute('tool') === 'petri-net-editor' && tool.getAttribute('version') === '1' && element.capacity === undefined) {
           const value = capacityNode.textContent ?? '';
-          try {
-            element.capacity = JSON.parse(value) as unknown;
-          } catch {
+          if (capacityNode.getAttribute('encoding') !== 'json') {
             element.capacity = value;
+            if (!warnings.includes(capacityWarning))
+              warnings.push(capacityWarning);
+          } else {
+            try {
+              element.capacity = JSON.parse(value) as unknown;
+            } catch {
+              element.capacity = value;
+            }
           }
-        } else if (!warnings.includes('Some PNML capacity data could not be preserved.')) {
-          warnings.push('Some PNML capacity data could not be preserved.');
+        } else if (!warnings.includes(capacityWarning)) {
+          warnings.push(capacityWarning);
         }
       }
     }

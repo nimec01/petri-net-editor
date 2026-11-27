@@ -58,6 +58,8 @@ function handleImport() {
       return;
     }
     validateMarkings(state);
+    if (format.value === 'json' && state.elements.some(element => element.type !== 'place' && element.capacity !== undefined))
+      importWarnings.push('Capacity data on non-place elements could not be preserved.');
     if (importWarnings.length) {
       warnings.value = importWarnings;
       pendingImport.value = state;

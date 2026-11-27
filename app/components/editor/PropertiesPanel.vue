@@ -174,20 +174,23 @@ function decrementTokens() {
             +
           </button>
         </div>
-        <label for="place-capacity" class="text-xs opacity-70 mt-2 block">Capacity (empty for unbounded)</label>
-        <input
-          id="place-capacity"
-          v-model="localCapacity"
-          type="text"
-          inputmode="numeric"
-          class="input input-sm w-full"
-          :class="{ 'input-error': capacityError || capacityInputError }"
-          :aria-invalid="!!(capacityError || capacityInputError)"
-          aria-describedby="capacity-error"
-          data-testid="prop-capacity"
-          @change="onCapacityInput"
-        >
-        <p v-if="capacityInputError || capacityError" id="capacity-error" class="text-error text-sm" role="alert">
+        <label class="text-xs opacity-70 mt-2 block">
+          Capacity (empty for unbounded)
+          <input
+            v-model="localCapacity"
+            type="text"
+            inputmode="numeric"
+            class="input input-sm w-full"
+            :class="{ 'input-error': capacityError || capacityInputError }"
+            :aria-invalid="!!(capacityError || capacityInputError)"
+            data-testid="prop-capacity"
+            @change="onCapacityInput"
+          >
+        </label>
+        <button v-if="element.capacity !== undefined" class="btn btn-ghost btn-xs" data-testid="clear-capacity" @click="localCapacity = ''; onCapacityInput()">
+          Clear capacity
+        </button>
+        <p v-if="capacityInputError || capacityError" class="text-error text-sm" role="alert">
           {{ capacityInputError || capacityError }}
         </p>
       </div>

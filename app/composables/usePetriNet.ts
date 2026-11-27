@@ -159,6 +159,7 @@ export function usePetriNet() {
   const elementCount = ref(0);
   const layoutType = ref<LayoutType>('dagre');
   const hasInvalidPlaces = ref(false);
+  const importError = ref('');
 
   watch(mode, (newMode, oldMode) => {
     if (newMode === 'fire' && hasInvalidPlaces.value) {
@@ -1546,6 +1547,15 @@ export function usePetriNet() {
     const state = decodeState(hash);
     if (!state)
       return false;
+    try {
+      validateMarkings(state);
+    } catch (error) {
+      importError.value = error instanceof Error
+        ? error.message
+        : 'Invalid marking in shared net.';
+      return false;
+    }
+    importError.value = '';
     if (JSON.stringify(exportToJson()) !== JSON.stringify(state)) {
       importFromJson(state);
     }
@@ -1615,6 +1625,7 @@ export function usePetriNet() {
     setAutoFireSpeed,
     isNetEmpty,
     hasInvalidPlaces,
+    importError,
     clearNet,
     destroy,
   };

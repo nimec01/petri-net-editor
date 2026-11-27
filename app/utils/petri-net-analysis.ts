@@ -306,6 +306,7 @@ function computeReachability(graph: ReachabilityGraphData, target: Marking, path
 
 function computeBoundedness(graph: ReachabilityGraphData, places: Place[], paths: Map<number, PathStep[]>): BoundednessAnalysis {
   const placeResults = computeMaxTokens(graph, places);
+  const cappedPlaces = places.filter(place => place.capacity !== undefined);
 
   for (let i = 0; i < graph.nodes.length; i++) {
     for (let j = 0; j < graph.nodes.length; j++) {
@@ -314,8 +315,23 @@ function computeBoundedness(graph: ReachabilityGraphData, places: Place[], paths
       }
       const larger = graph.nodes[i]!;
       const smaller = graph.nodes[j]!;
-      if (places.some(place => place.capacity !== undefined) || !strictlyDominates(larger.marking, smaller.marking)) {
+      if (!strictlyDominates(larger.marking, smaller.marking)
+        || cappedPlaces.some(place => (larger.marking[place.id] ?? 0) !== (smaller.marking[place.id] ?? 0))) {
         continue;
+      }
+      if (cappedPlaces.length > 0) {
+        const visited = new Set([smaller.id]);
+        const queue = [smaller.id];
+        for (let cursor = 0; cursor < queue.length && !visited.has(larger.id); cursor++) {
+          for (const edge of graph.edges) {
+            if (edge.source === queue[cursor] && !visited.has(edge.target)) {
+              visited.add(edge.target);
+              queue.push(edge.target);
+            }
+          }
+        }
+        if (!visited.has(larger.id))
+          continue;
       }
       const increasedPlaceIds = places
         .filter(place => (larger.marking[place.id] || 0) > (smaller.marking[place.id] || 0))
