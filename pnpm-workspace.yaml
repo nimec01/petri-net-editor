@@ -9,7 +9,7 @@ trustPolicyExclude:
 shellEmulator: true
 
 overrides:
-  '@nuxt/cli@4.0.1': 4.0.3
+  '@nuxt/cli@4.0.1': 4.1.0
   brace-expansion@>=4.0.0 <5.0.12: ^5.0.12
 
   brace-expansion@>=4.0.0 <5.0.8: ^5.0.8
